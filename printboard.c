@@ -1,5 +1,9 @@
-#include<ncurses.h>
-#include<stdlib.h>
+// #include<ncurses.h>
+#include <stdlib.h>
+#include <ncursesw/ncurses.h>
+#include <curses.h>
+#include <locale.h>
+#include <wchar.h>
 
 #define BOARDSIZE 8
 
@@ -8,68 +12,45 @@
 //--------------------------------------------------------
 void printing();
 void moving_and_sleeping();
-void colouring();
+void printboard();
 
 //--------------------------------------------------------
 // FUNCTION main
 //--------------------------------------------------------
 int main(void)
-{
+{ 
+    setlocale(LC_ALL, "");
+    // initscr();
+    // wchar_t wstr[] = { 9474, L'\0' };
+    // mvaddwstr(0, 0, wstr);
+    // refresh();
+    // getch();
+    // endwin();
+
     initscr();
 
-    // colouring();
+    printboard();
 
-    moving_and_sleeping();
+    // moving_and_sleeping();
 
-    addstr("\npress any key to exit...");
+    addstr("\nMove!");
     refresh();
-
-    getch();
+    while (true) getch();
     endwin();
 
     return EXIT_SUCCESS;
 } 
 
-void moving_and_sleeping()
-{
-    int row = 5;
-    int col = 0;
-
-    curs_set(0);
-
-    for(char c = 65; c <= 90; c++)
-    {
-        move(row++, col++);
-        addch(c);
-        refresh();
-        napms(100);
-    }
-
-    row = 5;
-    col = 3;
-
-    for(char c = 97; c <= 122; c++)
-    {
-        mvaddch(row++, col++, c);
-        refresh();
-        napms(100);
-    }
-
-    curs_set(1);
-
-    addch('\n');
-}
-
 char piece = 'K';
 
-void colouring()
+void printboard()
 {
     if(has_colors())
     {
         if(start_color() == OK)
         {
             init_pair(1, COLOR_BLACK, COLOR_WHITE);
-            init_pair(2, COLOR_WHITE, COLOR_BLACK);
+            init_pair(2, COLOR_WHITE, COLOR_GREEN);
 
             int curset = 2;
 
@@ -78,6 +59,8 @@ void colouring()
             for (int i = 0; i < BOARDSIZE; i++) {
                 for (int j = 0; j < BOARDSIZE; j++) {
                     attrset(COLOR_PAIR(curset));
+                    // wchar_t wstr[] = { 0x00002656, L'\0' };
+                    // mvaddstr(0, 0, wstr);
                     addstr(" K ");
                     attroff(COLOR_PAIR(curset));
                     if (curset == 1) {
