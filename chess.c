@@ -37,6 +37,7 @@ typedef struct node {
   int row;
   int col;
   char32_t piece;
+  char piece_letter;
   int alignment;
 } node_t;
 
@@ -49,6 +50,7 @@ typedef struct board {
  * Piece Order: Rook - Knight - Bishop - Queen - King - Bishop - Knight - Rook
  */
 char32_t b_pieces[] = {B_ROOK, B_KNIGHT, B_BISHOP, B_QUEEN, B_KING, B_BISHOP, B_KNIGHT, B_ROOK};
+char pieces_letter[] = {'R', 'N', 'B', 'Q', 'K', 'B', 'N', 'R'};
 char32_t w_pieces[] = {W_ROOK, W_KNIGHT, W_BISHOP, W_QUEEN, W_KING, W_BISHOP, W_KNIGHT, W_ROOK};
 char32_t even_row[] = {LIGHT_SPACE, DARK_SPACE, LIGHT_SPACE, DARK_SPACE, LIGHT_SPACE, DARK_SPACE, LIGHT_SPACE, DARK_SPACE};
 char32_t odd_row[] = {DARK_SPACE, LIGHT_SPACE, DARK_SPACE, LIGHT_SPACE, DARK_SPACE, LIGHT_SPACE, DARK_SPACE, LIGHT_SPACE};
@@ -65,11 +67,13 @@ void initialize (board_t* board) {
   // First row: Black Non-Pawn Pieces
   for (int i = 0; i < 8; i++) {
     board->cells[i]->piece =  b_pieces[i];
+    board->cells[i]->piece_letter = pieces_letter[i];
     board->cells[i]->alignment = 1;
   }
   // Second row: Black Pawn Pieces
   for (int i = 8; i < 16; i++) {
     board->cells[i]->piece = B_PAWN;
+    board->cells[i]->piece_letter = 'P';
     board->cells[i]->alignment = 1;
   }
 
@@ -87,12 +91,14 @@ void initialize (board_t* board) {
   // Seventh row: White Pawn Pieces
   for (int i = 48; i < 56; i++) {
     board->cells[i]->piece = W_PAWN;
+    board->cells[i]->piece_letter = 'P';
     board->cells[i]->alignment = 2;
   }
 
   // Eighth row: White Non-Pawn Pieces
   for (int i = 56; i < 64; i++) {
     board->cells[i]->piece = w_pieces[i];
+    board->cells[i]->piece_letter = pieces_letter[63 - i];
     board->cells[i]->alignment = 2;
   }
 }
@@ -100,7 +106,7 @@ void initialize (board_t* board) {
 /** 
  * Helper Function: Making a move (ASSUMES IT IS VALID)
  */
-void move (board_t* board, int startpos, int endpos) {
+void move_piece (board_t* board, int startpos, int endpos) {
   // Moves the Piece
   board->cells[endpos]->piece = board->cells[startpos]->piece;
   board->cells[endpos]->alignment = board->cells[startpos]->alignment;
