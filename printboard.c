@@ -154,6 +154,12 @@ void printboard(board_t* board) {
 void init_board(board_t* board) {
 
   printf("starting initialization\n");
+
+  // malloc for all cells
+  for (int i = 0; i < BOARD_DIM*BOARD_DIM; i++) {
+    board->cells[i] = malloc(sizeof(node_t));
+  }
+
   for (int i = 0; i < 8; i++) {
     board->cells[i]->piece_letter = pieces_letter[i];
     board->cells[i]->alignment = 1;
@@ -194,12 +200,12 @@ void init_board(board_t* board) {
 int main(void) {
   board_t* board = malloc(sizeof(board_t));
   // initialize(board);
-  // init_board(board);
+  init_board(board);
 
   initscr();
 
-  // printboard(board);
-  simpleprinting();
+  printboard(board);
+  // simpleprinting();
 
   addstr("\nMove!");
   refresh();
