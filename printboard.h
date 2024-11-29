@@ -18,11 +18,6 @@ int colorset(int alignment, int background);
 void printboard(board_t* board);
 
 /*
- * Prints a board that represents pieces as letters
-*/
-void printboard_l(board_t* board);
-
-/*
  * initializes game board
 */
 void init_board(board_t* board);

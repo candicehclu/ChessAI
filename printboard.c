@@ -1,7 +1,7 @@
-#include <ncurses.h>
-#include <stdlib.h>
 #include <curses.h>
 #include <locale.h>
+#include <ncurses.h>
+#include <stdlib.h>
 #include <string.h>
 #include <wchar.h>
 
@@ -9,22 +9,26 @@
 
 /*
  * to compile:
- * gcc -Wall $(pkg-config --cflags ncursesw) -o printboard printboard.c $(pkg-config --libs ncursesw) 
-*/
+ * gcc -Wall $(pkg-config --cflags ncursesw) -o printboard printboard.c $(pkg-config --libs
+ * ncursesw)
+ */
 
 int colorset(int alignment, int background) {
   if (alignment == 1) {
-    if (background == 1) return 2;
-    else return 1;
+    if (background == 1)
+      return 2;
+    else
+      return 1;
   }
-  if (background == 1) return 4;
-  else return 3;
+  if (background == 1)
+    return 4;
+  else
+    return 3;
 }
 
 void printboard(board_t* board) {
   if (has_colors()) {
     if (start_color() == OK) {
-
       // reset colors, set yellow as grey
       init_color(COLOR_GREEN, 300, 564, 302);
       init_color(COLOR_YELLOW, 700, 700, 700);
@@ -45,98 +49,45 @@ void printboard(board_t* board) {
 
       for (int i = 0; i < BOARD_DIM * BOARD_DIM; i++) {
         
+        // calculations for determining cell color
         row = i / 8;
         col = i % 8;
-        background = (int) (row % 2) + (int) (col % 2);
+        background = (int)(row % 2) + (int)(col % 2);
         if (curset == 0) curset = 2;
+
+        // get appropriate color settings
         curset = colorset(board->cells[i]->alignment, background);
+
+        // change line and print location marker if we are on a new line
+        if (i % 8 == 0) {
+          attrset(COLOR_PAIR(0));
+          addstr("\n ");
+          addch((char)(56 - row));
+          addch(' ');
+          attroff(COLOR_PAIR(0));
+        }
 
         // if there is nothing, print nothing
         if (board->cells[i]->alignment == 0) {
           attrset(COLOR_PAIR(curset));
           addstr("   ");
-          if (i % 8 == 7) {
-            addstr("\n");
-          }
           attroff(COLOR_PAIR(curset));
           continue;
         }
 
-          attrset(COLOR_PAIR(curset));
-          wint_t piece = (wint_t)board->cells[i]->piece;
-          cchar_t cc;
-          setcchar(&cc, (wchar_t*)&piece, 0, 0, NULL);
-          addch(' ');
-          add_wch(&cc);
-          addch(' ');
-          if (i != 0 && i % 8 == 7) {
-            addstr("\n");
-          }
-          attroff(COLOR_PAIR(curset));
+        // print piece if there is a piece
+        attrset(COLOR_PAIR(curset));
+        wint_t piece = (wint_t)board->cells[i]->piece;
+        cchar_t cc;
+        setcchar(&cc, (wchar_t*)&piece, 0, 0, NULL);
+        addch(' ');
+        add_wch(&cc);
+        addch(' ');
+        attroff(COLOR_PAIR(curset));
       }
-    } else {
-      addstr("Cannot start colours\n");
+      // print bottom location markers
+      addstr("\n    A  B  C  D  E  F  G  H\n");
       refresh();
-    }
-  } else {
-    addstr("Not colour capable\n");
-    refresh();
-  }
-}
-
-void printboard_l(board_t* board) {
-  if (has_colors()) {
-    if (start_color() == OK) {
-
-      // reset colors, set yellow as grey
-      init_color(COLOR_GREEN, 300, 464, 302);
-      init_color(COLOR_YELLOW, 900, 900, 900);
-
-      // black piece on white
-      init_pair(1, COLOR_BLACK, COLOR_YELLOW);
-      // black piece on green
-      init_pair(2, COLOR_BLACK, COLOR_GREEN);
-      // white piece on white
-      init_pair(3, COLOR_WHITE, COLOR_YELLOW);
-      // white piece on green
-      init_pair(4, COLOR_WHITE, COLOR_GREEN);
-
-      int curset;
-      int row;
-      int col;
-      int background;
-
-      for (int i = 0; i < BOARD_DIM * BOARD_DIM; i++) {
-        
-        row = i / 8;
-        col = i % 8;
-        background = (int) (row % 2) + (int) (col % 2);
-        // if (background == 0) background = 2;
-        curset = colorset(board->cells[i]->alignment, background);
-
-        // if there is nothing, print nothing
-        if (board->cells[i]->alignment == 0) {
-          attrset(COLOR_PAIR(curset));
-          addstr("   ");
-          if (i % 8 == 7) {
-            addstr("\n");
-          }
-          attroff(COLOR_PAIR(curset));
-          continue;
-        }
-
-        // if there is something, check and set correct color
-        // if (board->cells[i]->alignment == 1) {
-          attrset(COLOR_PAIR(curset));
-          char to_print[] = {' ', board->cells[i]->piece_letter, ' ', '\0'};
-          addstr(to_print);
-          if (i != 0 && i % 8 == 7) {
-            addstr("\n");
-          }
-          attroff(COLOR_PAIR(curset));
-        // }
-
-      }
     } else {
       addstr("Cannot start colours\n");
       refresh();
@@ -148,9 +99,8 @@ void printboard_l(board_t* board) {
 }
 
 void init_board(board_t* board) {
-
   // malloc for all cells
-  for (int i = 0; i < BOARD_DIM*BOARD_DIM; i++) {
+  for (int i = 0; i < BOARD_DIM * BOARD_DIM; i++) {
     board->cells[i] = malloc(sizeof(node_t));
   }
 
@@ -210,7 +160,7 @@ int main(void) {
   endwin();
 
   // free everything
-  for (int i = 0; i < BOARD_DIM*BOARD_DIM; i++) {
+  for (int i = 0; i < BOARD_DIM * BOARD_DIM; i++) {
     free(board->cells[i]);
   }
   free(board);
