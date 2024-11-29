@@ -86,6 +86,15 @@ void simpleprinting() {
   }
 }
 
+int colorset(int alignment, int background) {
+  if (alignment == 1) {
+    if (background == 1) return 2;
+    else return 1;
+  }
+  if (background == 1) return 4;
+  else return 3;
+}
+
 void printboard(board_t* board) {
   if (has_colors()) {
     if (start_color() == OK) {
@@ -104,42 +113,40 @@ void printboard(board_t* board) {
       init_pair(4, COLOR_WHITE, COLOR_GREEN);
 
       int curset;
+      int row;
+      int col;
+      int background;
 
       for (int i = 0; i < BOARD_DIM * BOARD_DIM; i++) {
-        // change line if i is multiple of 8
-        if (i % 8 == 0) {
-          attrset(COLOR_PAIR(2));
-          addstr("\n");
-          attroff(COLOR_PAIR(2));
-          refresh();
-        }
+        
+        row = i / 8;
+        col = i % 8;
+        background = (int) (row % 2) + (int) (col % 2);
+        // if (background == 0) background = 2;
+        curset = colorset(board->cells[i]->alignment, background);
 
         // if there is nothing, print nothing
         if (board->cells[i]->alignment == 0) {
-          if (i % 2 == 0) {
-            curset = 2;
-          } else
-            curset = 1;
           attrset(COLOR_PAIR(curset));
           addstr("   ");
+          if (i % 8 == 7) {
+            addstr("\n");
+          }
           attroff(COLOR_PAIR(curset));
           continue;
         }
 
         // if there is something, check and set correct color
-        if (board->cells[i]->alignment == 1) {
-          if (i % 2 == 0)
-            curset = 2;
-          else
-            curset = 1;
-        } else if (i % 2 == 0)
-          curset = 4;
-        else
-          curset = 3;
-        attrset(COLOR_PAIR(curset));
-        char to_print[] = {' ', board->cells[i]->piece_letter, ' ', '\0'};
-        addstr(to_print);
-        attroff(COLOR_PAIR(curset));
+        // if (board->cells[i]->alignment == 1) {
+          attrset(COLOR_PAIR(curset));
+          char to_print[] = {' ', board->cells[i]->piece_letter, ' ', '\0'};
+          addstr(to_print);
+          if (i != 0 && i % 8 == 7) {
+            addstr("\n");
+          }
+          attroff(COLOR_PAIR(curset));
+        // }
+
       }
     } else {
       addstr("Cannot start colours\n");
@@ -153,27 +160,22 @@ void printboard(board_t* board) {
 
 void init_board(board_t* board) {
 
-  printf("starting initialization\n");
-
   // malloc for all cells
   for (int i = 0; i < BOARD_DIM*BOARD_DIM; i++) {
     board->cells[i] = malloc(sizeof(node_t));
   }
 
+  // FIrst row: Black pieces
   for (int i = 0; i < 8; i++) {
     board->cells[i]->piece_letter = pieces_letter[i];
     board->cells[i]->alignment = 1;
   }
-
-  printf("first row done\n");
 
   // Second row: Black Pawn Pieces
   for (int i = 8; i < 16; i++) {
     board->cells[i]->piece_letter = 'P';
     board->cells[i]->alignment = 1;
   }
-
-  printf("second row done\n");
 
   // Non-Piece Nodes
   for (int i = 16; i < 48; i++) {
@@ -192,7 +194,7 @@ void init_board(board_t* board) {
 
   // Eighth row: White Non-Pawn Pieces
   for (int i = 56; i < 64; i++) {
-    board->cells[i]->piece_letter = pieces_letter[63 - i];
+    board->cells[i]->piece_letter = pieces_letter[i - 56];
     board->cells[i]->alignment = 2;
   }
 }
