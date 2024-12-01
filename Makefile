@@ -6,5 +6,5 @@ all: chess
 clean:
 	rm -f chess
 
-chess: main.c printboard.c chess.c chess.h
-	$(CC) $(CFLAGS) -o chess main.c chess.c printboard.c -lncurses
+chess: game.c printboard.c chess.c chess.h
+	$(CC) $(CFLAGS) -o chess game.c chess.c printboard.c -lncurses
