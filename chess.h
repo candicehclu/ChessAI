@@ -48,7 +48,6 @@ typedef struct node {
   int row;
   int col;
   char32_t piece;
-  char piece_letter;
   int alignment;
 } node_t;
 

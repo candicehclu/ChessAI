@@ -9,8 +9,7 @@
 
 /*
  * to compile:
- * gcc -Wall $(pkg-config --cflags ncursesw) -o printboard printboard.c $(pkg-config --libs
- * ncursesw)
+ * gcc -Wall $(pkg-config --cflags ncursesw) -o printboard printboard.c $(pkg-config --libs ncursesw)
  */
 
 int colorset(int alignment, int background) {
@@ -106,14 +105,12 @@ void init_board(board_t* board) {
 
   // FIrst row: Black pieces
   for (int i = 0; i < 8; i++) {
-    board->cells[i]->piece_letter = pieces_letter[i];
     board->cells[i]->piece = b_pieces[i];
     board->cells[i]->alignment = 1;
   }
 
   // Second row: Black Pawn Pieces
   for (int i = 8; i < 16; i++) {
-    board->cells[i]->piece_letter = 'P';
     board->cells[i]->piece = B_PAWN;
     board->cells[i]->alignment = 1;
   }
@@ -129,14 +126,12 @@ void init_board(board_t* board) {
 
   // Seventh row: White Pawn Pieces
   for (int i = 48; i < 56; i++) {
-    board->cells[i]->piece_letter = 'P';
     board->cells[i]->piece = W_PAWN;
     board->cells[i]->alignment = 2;
   }
 
   // Eighth row: White Non-Pawn Pieces
   for (int i = 56; i < 64; i++) {
-    board->cells[i]->piece_letter = pieces_letter[i - 56];
     board->cells[i]->piece = w_pieces[i - 56];
     board->cells[i]->alignment = 2;
   }
