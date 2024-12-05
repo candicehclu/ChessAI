@@ -172,8 +172,8 @@ int* knightmoves (int row, int col) {
   int cols[] = {col + 1, col + 2, col + 2, col + 1, col - 1, col - 2, col - 2, col - 1};
 
   for (int i = 0; i < 8; i++) {
-    int endpos = (rows[i] * 8) + cols[i];
-    if (endpos >= 0 && endpos < 64) {
+    if (rows[i] >= 0 && rows[i] <= 7 && cols[i] >= 0 && cols[i] <= 7) {
+      int endpos = (rows[i] * 8) + cols[i];
       moves[counter] = endpos;
       counter++;
     }
@@ -192,19 +192,28 @@ int* bishopmoves (int row, int col) {
 
   // Direction 1 Movements
   for (int i = -7; i < 7; i++) {
-    int endpos = ((row + i) * 8) + (col - i);
-    if (endpos >= 0 && endpos < 64 && endpos != start) {
-      moves[counter] = endpos;
-      counter++;
+    int newrow = row + i;
+    int newcol = col - i;
+    if (newrow >= 0 && newrow <= 7 && newcol >= 0 && newcol <= 7) {
+      int endpos = (newrow * 8) + newcol;
+      if (endpos != start) {
+        moves[counter] = endpos;
+        counter++;
+      }
     }
+    
   }
 
-  // Direction 1 Movements
+  // Direction 2 Movements
   for (int i = -7; i < 7; i++) {
-    int endpos = ((row + i) * 8) + (col + i);
-    if (endpos >= 0 && endpos < 64 && endpos != start) {
-      moves[counter] = endpos;
-      counter++;
+    int newrow = row + i;
+    int newcol = col + i;
+    if (newrow >= 0 && newrow <= 7 && newcol >= 0 && newcol <= 7) {
+      int endpos = (newrow * 8) + newcol;
+      if (endpos != start) {
+        moves[counter] = endpos;
+        counter++;
+      }
     }
   }
 
@@ -226,14 +235,98 @@ int* queenmoves (int row, int col) {
 
 int* kingmoves (int row, int col) {
   // A King will have a maximum of 8 available spaces to move to
+  int* moves = malloc(sizeof(int) * 8);
+
+  int rows[] = {row - 1, row - 1, row, row + 1, row + 1, row + 1, row, row - 1};
+  int cols[] = {col, col + 1, col + 1, col + 1, col, col - 1, col - 1, col - 1};
+
+  for (int i = 0; i < 8; i++) {
+    if (rows[i] >= 0 && rows[i] <= 7 && cols[i] >= 0 && cols[i] <= 7) {
+      int endpos = (rows[i] * 8) + cols[i];
+      moves[counter] = endpos;
+      counter++;
+    }
+  }
+
+  return moves;
+}
+
+int* white_pawnmoves (int row, int col, board_t* board) {
+  // A pawn will have a maximum of 4 available spaces to move to
+  int* moves = malloc(sizeof(int) * 4);
+  int counter = 0;
+
+  // Check if it is in first row
+  if (row == 6) {
+    moves[counter] = ((row - 2) * 8) + col;
+    counter++;
+  }
+
+  // Check if there are pieces diagonally in front of it
   
+  // Up-Left
+  if (row - 1 >= 0 && row - 1 <= 7 && col - 1 >= 0 && col - 1 <= 7) {
+    int upleft = ((row - 1) * 8) + (col - 1);
+    if (board->cells[upleft]->alignment == 1) {
+      moves[counter] == upleft;
+      counter++;
+    }
+  }
+
+  // Up-Right
+  if (row - 1 >= 0 && row - 1 <= 7 && col + 1 >= 0 && col + 1 <= 7) {
+    int upleft = ((row - 1) * 8) + (col + 1);
+    if (board->cells[upleft]->alignment == 1) {
+      moves[counter] == upleft;
+      counter++;
+    }
+  }
+
+  // Normal case
+  if (row - 1 >= 0) {
+    moves[counter] = ((row - 1) * 8) + col;
+    counter++;
+  }
+  
+  return moves;
 }
 
-int* white_pawnmoves (int row, int col) {
-  // Check if there are pieces diagonally in front of it
+int* black_pawnmoves (int row, int col, board_t* board) {
+  // A pawn will have a maximum of 4 available spaces to move to
+  int* moves = malloc(sizeof(int) * 4);
+  int counter = 0;
 
-}
+  // Check if it is in first row
+  if (row == 1) {
+    moves[counter] = ((row + 2) * 8) + col;
+    counter++;
+  }
 
-int* black_pawnmoves (int row, int col) {
   // Check if there are pieces diagonally in front of it
+  
+  // Up-Left
+  if (row + 1 >= 0 && row + 1 <= 7 && col - 1 >= 0 && col - 1 <= 7) {
+    int upleft = ((row + 1) * 8) + (col - 1);
+    if (board->cells[upleft]->alignment == 1) {
+      moves[counter] == upleft;
+      counter++;
+    }
+  }
+
+  // Up-Right
+  if (row + 1 >= 0 && row + 1 <= 7 && col + 1 >= 0 && col + 1 <= 7) {
+    int upleft = ((row + 1) * 8) + (col + 1);
+    if (board->cells[upleft]->alignment == 1) {
+      moves[counter] == upleft;
+      counter++;
+    }
+  }
+
+  // Normal case
+  if (row + 1 <= 7) {
+    moves[counter] = ((row + 1) * 8) + col;
+    counter++;
+  }
+  
+  return moves;
 }
