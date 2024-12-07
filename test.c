@@ -4,7 +4,7 @@
 #include <ctype.h>
 
 int command_to_move(char* command, int* pos) {
-  char* token;
+  // char* token;
   char* pos_str[2];
 
   // check that strlen is 6
@@ -37,6 +37,8 @@ int command_to_move(char* command, int* pos) {
   int end_col = (int)(pos_str[1][0]) - (int)'A';
   int end_row = (int)(8 - ((int)(pos_str[1][1]) - '0'));
 
+  printf("startpos: %d: %d, endpos: %d: %d\n", start_col, start_row, end_col, end_row);
+
   if (!(start_col >= 0 && start_col < 8 && 
         end_col >= 0 && end_col < 8 && 
         start_row >= 0 && start_row < 8 && 
@@ -48,7 +50,7 @@ int command_to_move(char* command, int* pos) {
   // convert 2
   pos[0] = 8*start_row + start_col;
   pos[1] = 8*end_row + end_col;
-//   printf("startpos: %d: %d, endpos: %d: %d\n", start_col, start_row, end_col, end_row);
+  // printf("startpos: %d: %d, endpos: %d: %d\n", start_col, start_row, end_col, end_row);
 
   printf("startpos: %d, endpos: %d\n", pos[0], pos[1]);
   return 0;
@@ -57,7 +59,7 @@ int command_to_move(char* command, int* pos) {
 
 int main(void) {
   int pos[2];
-  char* str = "A1 C0\n";
+  char* str = "A1 C8\n";
 
   char* move = malloc(sizeof(char) * 7);
   char* token;
