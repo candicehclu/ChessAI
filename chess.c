@@ -100,72 +100,6 @@ void initialize(board_t* board) {
   }
 }
 
-int validate_move(board_t* board, int startpos, int endpos, int myalign) {
-  char32_t mypiece = board->cells[startpos]->piece;
-  int* moves = NULL;
-
-  if (board->cells[startpos]->alignment != myalign) { // If alignment does not match up
-    return -1;
-  }
-
-  if (myalign == 1) {  // Your piece is black
-    switch (mypiece) {
-      case B_BISHOP:
-        moves = bishopmoves(startpos / 8, startpos % 8, board, myalign);
-        break;
-      case B_KING:
-        moves = kingmoves(startpos / 8, startpos % 8, board, myalign);
-        break;
-      case B_KNIGHT:
-        moves = knightmoves(startpos / 8, startpos % 8, board, myalign);
-        break;
-      case B_PAWN:
-        moves = black_pawnmoves(startpos / 8, startpos % 8, board);
-        break;
-      case B_QUEEN:
-        moves = queenmoves(startpos / 8, startpos % 8, board, myalign);
-        break;
-      case B_ROOK:
-        moves = rookmoves(startpos / 8, startpos % 8, board, myalign);
-        break;
-    }
-  } else if (myalign == 2) {  // Your piece is white
-    switch (mypiece) {
-      case W_BISHOP:
-        moves = bishopmoves(startpos / 8, startpos % 8, board, myalign);
-        break;
-      case W_KING:
-        moves = kingmoves(startpos / 8, startpos % 8, board, myalign);
-        break;
-      case W_KNIGHT:
-        moves = knightmoves(startpos / 8, startpos % 8, board, myalign);
-        break;
-      case W_PAWN:
-        moves = white_pawnmoves(startpos / 8, startpos % 8, board);
-        break;
-      case W_QUEEN:
-        moves = queenmoves(startpos / 8, startpos % 8, board, myalign);
-        break;
-      case W_ROOK:
-        moves = rookmoves(startpos / 8, startpos % 8, board, myalign);
-        break;
-    }
-  }
-
-  for (int i = 0; i < 27; i++) { // Check if prompted endpos is within validmoves
-    if (moves[i] == NULL) { // Reached end of list, break out of loop
-      break;
-    }
-    if (endpos == moves[i]) { // Move found
-      move_piece(board, startpos, endpos); // Make the move
-      return 1; // Return 1 for success
-    }
-  }
-
-  // If nothing returned, failed
-  return -1; 
-}
-
 /**
  * Helper Function: Making a move (ASSUMES IT IS VALID)
  */
@@ -502,4 +436,70 @@ int* black_pawnmoves(int row, int col, board_t* board) {
   }
 
   return moves;
+}
+
+int validate_move(board_t* board, int startpos, int endpos, int myalign) {
+  char32_t mypiece = board->cells[startpos]->piece;
+  int* moves = NULL;
+
+  if (board->cells[startpos]->alignment != myalign) {  // If alignment does not match up
+    return -1;
+  }
+
+  if (myalign == 1) {  // Your piece is black
+    switch (mypiece) {
+      case B_BISHOP:
+        moves = bishopmoves(startpos / 8, startpos % 8, board, myalign);
+        break;
+      case B_KING:
+        moves = kingmoves(startpos / 8, startpos % 8, board, myalign);
+        break;
+      case B_KNIGHT:
+        moves = knightmoves(startpos / 8, startpos % 8, board, myalign);
+        break;
+      case B_PAWN:
+        moves = black_pawnmoves(startpos / 8, startpos % 8, board);
+        break;
+      case B_QUEEN:
+        moves = queenmoves(startpos / 8, startpos % 8, board, myalign);
+        break;
+      case B_ROOK:
+        moves = rookmoves(startpos / 8, startpos % 8, board, myalign);
+        break;
+    }
+  } else if (myalign == 2) {  // Your piece is white
+    switch (mypiece) {
+      case W_BISHOP:
+        moves = bishopmoves(startpos / 8, startpos % 8, board, myalign);
+        break;
+      case W_KING:
+        moves = kingmoves(startpos / 8, startpos % 8, board, myalign);
+        break;
+      case W_KNIGHT:
+        moves = knightmoves(startpos / 8, startpos % 8, board, myalign);
+        break;
+      case W_PAWN:
+        moves = white_pawnmoves(startpos / 8, startpos % 8, board);
+        break;
+      case W_QUEEN:
+        moves = queenmoves(startpos / 8, startpos % 8, board, myalign);
+        break;
+      case W_ROOK:
+        moves = rookmoves(startpos / 8, startpos % 8, board, myalign);
+        break;
+    }
+  }
+
+  for (int i = 0; i < 27; i++) {  // Check if prompted endpos is within validmoves
+    if (moves[i] == 0) {          // Reached end of list, break out of loop
+      break;
+    }
+    if (endpos == moves[i]) {               // Move found
+      move_piece(board, startpos, endpos);  // Make the move
+      return 1;                             // Return 1 for success
+    }
+  }
+
+  // If nothing returned, failed
+  return -1;
 }
