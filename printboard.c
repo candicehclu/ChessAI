@@ -1,9 +1,10 @@
-#include <curses.h>
+// #include <curses.h>
 #include <locale.h>
-#include <ncurses.h>
+//#include <ncurses.h>
 #include <stdlib.h>
 #include <string.h>
 #include <wchar.h>
+#include <ncursesw/curses.h>
 
 #include "chess.h"
 
@@ -137,27 +138,27 @@ void init_board(board_t* board) {
   }
 }
 
-int main(void) {
-  setlocale(LC_ALL, "");
-  board_t* board = malloc(sizeof(board_t));
-  init_board(board);
+// int main(void) {
+//   setlocale(LC_ALL, "");
+//   board_t* board = malloc(sizeof(board_t));
+//   init_board(board);
 
-  initscr();
-  cbreak();
-  noecho();
-  clear();
+//   initscr();
+//   cbreak();
+//   noecho();
+//   clear();
 
-  printboard(board);
+//   printboard(board);
 
-  addstr("\nInsert move: ");
-  refresh();
-  getch();
-  endwin();
+//   addstr("\nInsert move: ");
+//   refresh();
+//   getch();
+//   endwin();
 
-  // free everything
-  for (int i = 0; i < BOARD_DIM * BOARD_DIM; i++) {
-    free(board->cells[i]);
-  }
-  free(board);
-  return 0;
-}
+//   // free everything
+//   for (int i = 0; i < BOARD_DIM * BOARD_DIM; i++) {
+//     free(board->cells[i]);
+//   }
+//   free(board);
+//   return 0;
+// }

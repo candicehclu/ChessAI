@@ -3,6 +3,8 @@
 #include <string.h>
 #include <ctype.h>
 
+// $(CC) $(CFLAGS) -o chess game.c chess.c printboard.c -lncurses $(CPACK)
+
 int command_to_move(char* command, int* pos) {
   // char* token;
   char* pos_str[2];
