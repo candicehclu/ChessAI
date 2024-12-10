@@ -243,7 +243,12 @@ int main() {
       // do sth else
     }    
     // if it is a valid move, process input string and call move_piece
-    // else print error
+    // player is always white
+    command_to_move(command, board, 2);
+    // make the move
+
+    // reprint the board
+    printboard();
   }
   endwin();
 
