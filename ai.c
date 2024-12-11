@@ -34,7 +34,7 @@ int check_board(board_t* board) {
         // initialize args
         args_t args;
         args.board = board;
-        args.index = index;
+        args.index = i;
         args.largest = largest;
         args.largest_index = 0;
         args[i] = args;

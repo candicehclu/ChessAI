@@ -15,7 +15,7 @@ int colorset(int alignment, int background);
 /*
  * Prints a board that represents pieces as unicode characters
 */
-void printboard(board_t* board);
+void printboard(board_t* board, WINDOW* win);
 
 /*
  * initializes game board

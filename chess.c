@@ -1,3 +1,5 @@
+#include "chess.h"
+
 #include <math.h>
 #include <stdbool.h>
 #include <stdint.h>
@@ -6,43 +8,6 @@
 #include <string.h>
 #include <uchar.h>
 #include <unistd.h>
-
-#define BOARD_DIM 8
-#define BLOCK SIZE 32
-
-/**
- * Piece Definitions
- */
-#define B_ROOK 0x0000265C
-#define B_KNIGHT 0x0000265E
-#define B_BISHOP 0x0000265D
-#define B_QUEEN 0x0000265B
-#define B_KING 0x0000265A
-#define B_PAWN 0x0000265F
-
-#define W_ROOK 0x00002656
-#define W_KNIGHT 0x00002658
-#define W_BISHOP 0x00002657
-#define W_QUEEN 0x00002655
-#define W_KING 0x00002654
-#define W_PAWN 0x00002659
-
-#define DARK_SPACE 0x000025A0
-#define LIGHT_SPACE 0x000025A1
-
-/**
- * Defining the chessboard structure
- */
-typedef struct node {
-  int row;
-  int col;
-  char32_t piece;
-  int alignment;
-} node_t;
-
-typedef struct board {
-  node_t* cells[BOARD_DIM * BOARD_DIM];
-} board_t;
 
 /**
  * Global Variables for reference, definining piece order
@@ -96,6 +61,47 @@ void initialize(board_t* board) {
   // Eighth row: White Non-Pawn Pieces
   for (int i = 56; i < 64; i++) {
     board->cells[i]->piece = w_pieces[i];
+    board->cells[i]->alignment = 2;
+  }
+}
+
+
+void init_board(board_t* board) {
+  // malloc for all cells
+  for (int i = 0; i < BOARD_DIM * BOARD_DIM; i++) {
+    board->cells[i] = malloc(sizeof(node_t));
+  }
+
+  // FIrst row: Black pieces
+  for (int i = 0; i < 8; i++) {
+    board->cells[i]->piece = b_pieces[i];
+    board->cells[i]->alignment = 1;
+  }
+
+  // Second row: Black Pawn Pieces
+  for (int i = 8; i < 16; i++) {
+    board->cells[i]->piece = B_PAWN;
+    board->cells[i]->alignment = 1;
+  }
+
+  // Non-Piece Nodes
+  for (int i = 16; i < 48; i++) {
+    if ((i / 8) % 2 == 0) {
+      board->cells[i]->alignment = 0;
+    } else {
+      board->cells[i]->alignment = 0;
+    }
+  }
+
+  // Seventh row: White Pawn Pieces
+  for (int i = 48; i < 56; i++) {
+    board->cells[i]->piece = W_PAWN;
+    board->cells[i]->alignment = 2;
+  }
+
+  // Eighth row: White Non-Pawn Pieces
+  for (int i = 56; i < 64; i++) {
+    board->cells[i]->piece = w_pieces[i - 56];
     board->cells[i]->alignment = 2;
   }
 }

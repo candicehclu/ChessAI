@@ -1,3 +1,5 @@
+#pragma once
+
 #include <math.h>
 #include <stdbool.h>
 #include <stdint.h>
@@ -29,18 +31,6 @@
 
 #define DARK_SPACE 0x000025A0
 #define LIGHT_SPACE 0x000025A1
-
-/**
- * Global Variables for reference, definining piece order
- * Piece Order: Rook - Knight - Bishop - Queen - King - Bishop - Knight - Rook
- */
-char32_t b_pieces[] = {B_ROOK, B_KNIGHT, B_BISHOP, B_QUEEN, B_KING, B_BISHOP, B_KNIGHT, B_ROOK};
-char pieces_letter[] = {'R', 'N', 'B', 'Q', 'K', 'B', 'N', 'R'};
-char32_t w_pieces[] = {W_ROOK, W_KNIGHT, W_BISHOP, W_QUEEN, W_KING, W_BISHOP, W_KNIGHT, W_ROOK};
-char32_t even_row[] = {LIGHT_SPACE, DARK_SPACE, LIGHT_SPACE, DARK_SPACE,
-                       LIGHT_SPACE, DARK_SPACE, LIGHT_SPACE, DARK_SPACE};
-char32_t odd_row[] = {DARK_SPACE, LIGHT_SPACE, DARK_SPACE, LIGHT_SPACE,
-                      DARK_SPACE, LIGHT_SPACE, DARK_SPACE, LIGHT_SPACE};
 
 /**
  * Defining the chessboard structure

@@ -26,7 +26,7 @@ int colorset(int alignment, int background) {
     return 3;
 }
 
-void printboard(board_t* board) {
+void printboard(board_t* board, WINDOW* win) {
   if (has_colors()) {
     if (start_color() == OK) {
       // reset colors, set yellow as grey
@@ -87,54 +87,18 @@ void printboard(board_t* board) {
       }
       // print bottom location markers
       addstr("\n    A  B  C  D  E  F  G  H\n");
+      wrefresh(win);
+      clrtoeol();
       refresh();
     } else {
       addstr("Cannot start colours\n");
+      wrefresh(win);
       refresh();
     }
   } else {
     addstr("Not colour capable\n");
+    wrefresh(win);
     refresh();
-  }
-}
-
-void init_board(board_t* board) {
-  // malloc for all cells
-  for (int i = 0; i < BOARD_DIM * BOARD_DIM; i++) {
-    board->cells[i] = malloc(sizeof(node_t));
-  }
-
-  // FIrst row: Black pieces
-  for (int i = 0; i < 8; i++) {
-    board->cells[i]->piece = b_pieces[i];
-    board->cells[i]->alignment = 1;
-  }
-
-  // Second row: Black Pawn Pieces
-  for (int i = 8; i < 16; i++) {
-    board->cells[i]->piece = B_PAWN;
-    board->cells[i]->alignment = 1;
-  }
-
-  // Non-Piece Nodes
-  for (int i = 16; i < 48; i++) {
-    if ((i / 8) % 2 == 0) {
-      board->cells[i]->alignment = 0;
-    } else {
-      board->cells[i]->alignment = 0;
-    }
-  }
-
-  // Seventh row: White Pawn Pieces
-  for (int i = 48; i < 56; i++) {
-    board->cells[i]->piece = W_PAWN;
-    board->cells[i]->alignment = 2;
-  }
-
-  // Eighth row: White Non-Pawn Pieces
-  for (int i = 56; i < 64; i++) {
-    board->cells[i]->piece = w_pieces[i - 56];
-    board->cells[i]->alignment = 2;
   }
 }
 
@@ -162,3 +126,4 @@ void init_board(board_t* board) {
 //   free(board);
 //   return 0;
 // }
+
