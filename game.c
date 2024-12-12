@@ -8,11 +8,13 @@
 #include <ctype.h>
 #include <unistd.h>
 #include <ncursesw/curses.h>
+#include <dirent.h>
 
 #include "chess.h"
 #include "printboard.h"
 
 WINDOW* win;
+bool running;
 
 /*
  * return 0 if move command is valid, else return 1
@@ -147,37 +149,6 @@ int save_game(board_t* board, char* name) {
   return 0;
 }
 
-int print_saved_games() {
-  FILE* file = fopen("./saved_games.txt", "a");
-  if(file == NULL) {
-    addstr("fopen failed\n");
-    wrefresh(win);
-    refresh();
-    return 1;
-  }
-
-  // name length should be less or equal to 20
-  char* line = malloc(sizeof(char)*21);
-  size_t size;
-  // ssize_t read;
-  while (getline(&line, &size, file) != -1) {
-    // printf("%s\n", line);
-    addstr(line);
-    addstr("\n");
-    wrefresh(win);
-    refresh();
-  }
-
-  // close game name file
-  if (fclose(file) != 0) {
-    addstr("fclose fails\n");
-    wrefresh(win);
-    refresh();
-    return 1;
-  }
-  return 0;
-}
-
 char32_t get_unicode(char* piece_str) {
   if (strcmp(piece_str, "0x0000265C") == 0) return B_ROOK;
   if (strcmp(piece_str, "0x0000265E") == 0) return B_KNIGHT;
@@ -194,33 +165,103 @@ char32_t get_unicode(char* piece_str) {
   return (char32_t)0;
 }
 
+/*
+ * get the names of the saved games
+ */
+int get_saved_games() {
+  // the directory ./games stores the files of the saved games
+  DIR* dir = opendir("./games");
+  if(dir == NULL) {
+    addstr("opendir for saved games failed\n");
+    wrefresh(win);
+    refresh();
+    return 1;
+  }
+
+  // read the entries in the directory one-by-one
+  struct dirent* entry;
+  while ((entry = readdir(dir)) != NULL) {
+    if ((strcmp(entry->d_name, ".") != 0) && (strcmp(entry->d_name, "..") != 0)) {
+      char* file_name = entry->d_name;
+      char* game_name = strsep(&file_name, ".");
+      addstr(game_name);
+      addstr("\n");
+    }
+  }
+
+  if (closedir(dir) == -1) {
+    addstr("closedir for saved games failed\n");
+    wrefresh(win);
+    refresh();
+    return 1;
+  }
+
+  return 0;
+}
+
+/*
+ * validate a given game name
+ */
 int validate_game_name(char* game) {
   int valid = 0;
-  
-  // read names of currently saved games
-  FILE* file = fopen("./saved_games.txt", "a");
-  if(file == NULL) {
-    addstr("fopen failed\n");
+
+  // the directory ./games stores the files of the saved games
+  DIR* dir = opendir("./games");
+  if(dir == NULL) {
+    addstr("opendir for saved games failed\n");
     wrefresh(win);
     refresh();
     return 1;
   }
 
-  // name length should be less or equal to 20
-  char* line = malloc(sizeof(char)*21);
-  size_t size;
-  // ssize_t read;
-  while (getline(&line, &size, file) != -1) {
-    if (strcmp(line, game) == 0) valid = 1;
+  // read the entries in the directory one-by-one
+  struct dirent* entry;
+  while ((entry = readdir(dir)) != NULL) {
+    if (strcmp(entry->d_name, game) == 1) {
+      valid = 1;
+      break;
+    }
   }
 
-  if (fclose(file) != 0) {
-    addstr("fclose fails\n");
+  if (closedir(dir) == -1) {
+    addstr("closedir for saved games failed\n");
     wrefresh(win);
     refresh();
     return 1;
   }
 
+  // // read names of currently saved games
+  // FILE* file = fopen("./saved_games.txt", "a");
+  // if(file == NULL) {
+  //   addstr("fopen failed\n");
+  //   wrefresh(win);
+  //   refresh();
+  //   return 1;
+  // }
+
+  // // name length should be less or equal to 20
+  // char* line = malloc(sizeof(char)*21);
+  // size_t size;
+  // // ssize_t read;
+  // while (getline(&line, &size, file) != -1) {
+  //   if (strcmp(line, game) == 0) valid = 1;
+  // }
+
+  // if (fclose(file) != 0) {
+  //   addstr("fclose fails\n");
+  //   wrefresh(win);
+  //   refresh();
+  //   return 1;
+  // }
+  if (valid == 0) {
+    addstr("invalid game\n");
+    wrefresh(win);
+    refresh();
+  } else {
+    addstr("valid game\n");
+    wrefresh(win);
+    refresh();
+  }
   return valid;
 }
 
@@ -267,6 +308,20 @@ int resume_game(char* game_name, board_t* board) {
   return 0;
 }
 
+/*
+ * runs the ai to evaluate next move and make the move
+*/
+void run_ai() {
+
+}
+
+/*
+ * make the move for user
+*/
+void make_move() {
+  
+}
+
 int main() {
   setlocale(LC_ALL, "");
   board_t* board = malloc(sizeof(board_t));
@@ -277,6 +332,7 @@ int main() {
   // noecho();
   clear();
 
+  running = true;
   printboard(board, win);
 
   // malloc for command
@@ -286,9 +342,12 @@ int main() {
   // fgets(command, 100, stdin);
 
   while (true) {
-    clrtoeol();
-    refresh();
+    // wrefresh(win);
+    // clrtoeol();
+    // refresh();
     // ask for input
+    move(9, 0);
+    clrtobot();
     addstr("Insert command or move: ");
     wrefresh(win);
     refresh();
@@ -298,6 +357,7 @@ int main() {
     if (strcmp(command, "quit") == 0) break;
     else if (strcmp(command, "save") == 0) {
       do {
+        clrtoeol();
         // prompt user to enter game name
         addstr("Game name to save (less than 20 characters): ");
         wrefresh(win);
@@ -308,8 +368,18 @@ int main() {
       while (save_game(board, command) == 1);
     } // ask user to make the file name to be less than 20 chracters
     else if (strcmp(command, "resume") == 0) {
-      print_saved_games();
-      // do sth else
+      do {
+        clrtoeol();
+        // print the names of the saved games
+        if (get_saved_games() == 1) break;
+        // ask the user for the name of the game to resume
+        addstr("Insert the name of the game to resume: ");
+        wrefresh(win);
+        refresh();
+        getstr(command);
+        // move(8, 25);
+        // clrtobot();
+      } while(validate_game_name(command) == 0);
     }
     else {
     // if it is a valid move, process input string and call move_piece
