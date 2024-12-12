@@ -75,21 +75,32 @@ int save_game(board_t* board, char* name) {
   // string append for file path
   int name_length = strlen(name);
   char* path = malloc(sizeof(char)*(11 + name_length));
-  path = name;
-  strcat(path, "games/");
+  strncpy(path, "./games/", 9);
+  // strcat(path, "games/");
   strcat(path, name);
   strcat(path, ".txt");
 
+  // printf("%s\n", path);
+
   // check if the file already exists
   if (access(path, F_OK) == 0) {
-    printf("File already exists\n");
+    addstr("File already exists\n");
+    wrefresh(win);
+    refresh();
     return 1;
   }
 
   // else save it
   FILE* file = fopen(path, "w");
+
+  if (access(path, F_OK) == 0) {
+    printf("File already exists\n");
+  }
+
   if(file == NULL) {
-    perror("fopen failed\n");
+    addstr("fopen failed\n");
+    wrefresh(win);
+    refresh();
     return 1;
   }
 
@@ -104,15 +115,21 @@ int save_game(board_t* board, char* name) {
 
   // close file
   if (fclose(file) != 0) {
-    perror("fclose fails\n");
+    addstr("fclose fails\n");
+    wrefresh(win);
+    refresh();
     return 1;
   }
-  printf("Your game is successfully saved\n");
+  addstr("Your game is successfully saved\n");
+  wrefresh(win);
+  refresh();
 
   // add game name to separate file
   file = fopen("./saved_games.txt", "a");
   if(file == NULL) {
-    perror("fopen failed\n");
+    addstr("fopen failed\n");
+    wrefresh(win);
+    refresh();
     return 1;
   }
 
@@ -122,7 +139,9 @@ int save_game(board_t* board, char* name) {
 
   // close game name file
   if (fclose(file) != 0) {
-    perror("fclose fails\n");
+    addstr("fclose fails\n");
+    wrefresh(win);
+    refresh();
     return 1;
   }
   return 0;
@@ -131,7 +150,9 @@ int save_game(board_t* board, char* name) {
 int print_saved_games() {
   FILE* file = fopen("./saved_games.txt", "a");
   if(file == NULL) {
-    perror("fopen failed\n");
+    addstr("fopen failed\n");
+    wrefresh(win);
+    refresh();
     return 1;
   }
 
@@ -140,12 +161,18 @@ int print_saved_games() {
   size_t size;
   // ssize_t read;
   while (getline(&line, &size, file) != -1) {
-    printf("%s\n", line);
+    // printf("%s\n", line);
+    addstr(line);
+    addstr("\n");
+    wrefresh(win);
+    refresh();
   }
 
   // close game name file
   if (fclose(file) != 0) {
-    perror("fclose fails\n");
+    addstr("fclose fails\n");
+    wrefresh(win);
+    refresh();
     return 1;
   }
   return 0;
@@ -173,7 +200,9 @@ int validate_game_name(char* game) {
   // read names of currently saved games
   FILE* file = fopen("./saved_games.txt", "a");
   if(file == NULL) {
-    perror("fopen failed\n");
+    addstr("fopen failed\n");
+    wrefresh(win);
+    refresh();
     return 1;
   }
 
@@ -186,7 +215,9 @@ int validate_game_name(char* game) {
   }
 
   if (fclose(file) != 0) {
-    perror("fclose fails\n");
+    addstr("fclose fails\n");
+    wrefresh(win);
+    refresh();
     return 1;
   }
 
@@ -209,7 +240,9 @@ int resume_game(char* game_name, board_t* board) {
   // open path in read-only mode
   FILE* file = fopen(path, "r");
   if(file == NULL) {
-    perror("fopen failed\n");
+    addstr("fopen failed\n");
+    wrefresh(win);
+    refresh();
     return 1;
   }
 
@@ -253,7 +286,8 @@ int main() {
   // fgets(command, 100, stdin);
 
   while (true) {
-
+    clrtoeol();
+    refresh();
     // ask for input
     addstr("Insert command or move: ");
     wrefresh(win);
@@ -262,21 +296,28 @@ int main() {
 
     // check for commands
     if (strcmp(command, "quit") == 0) break;
-    if (strcmp(command, "save") == 0) {
-      // prompt user to enter game name
-      printf("Game name to save (less than 20 characters): ");
-      fgets(command, 20, stdin);
-      save_game(board, command); // ask user to make the file name to be less than 20 chracters
-    }
-    if (strcmp(command, "resume") == 0) {
+    else if (strcmp(command, "save") == 0) {
+      do {
+        // prompt user to enter game name
+        addstr("Game name to save (less than 20 characters): ");
+        wrefresh(win);
+        refresh();
+        getstr(command);
+        if (strcmp(command, "quit") == 0) break;
+      }
+      while (save_game(board, command) == 1);
+    } // ask user to make the file name to be less than 20 chracters
+    else if (strcmp(command, "resume") == 0) {
       print_saved_games();
       // do sth else
-    }    
+    }
+    else {
     // if it is a valid move, process input string and call move_piece
     command_to_move(command, pos, board, 2);
+    }
     move(0, 0);
     printboard(board, win);
-    // else print error
+    // else error
   }
 
   endwin();
