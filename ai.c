@@ -1,17 +1,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <pthread.h>
+#include <time.h>
 
 #include "chess.h"
 
 // precondition: computer always play black
-
-typedef struct args {
-    board_t* board;
-    int index;
-    int* largest;
-    int* largest_index;
-} args_t;
 
 // declare global lock
 pthread_mutex_t lock = PTHREAD_MUTEX_INITIALIZER;
@@ -106,30 +100,18 @@ int calculate_value(uint32_t piece) {
         case B_KING: return 10;
         case W_KING: return 10;
     }
-    return 0;
+    return -1;
 }
 
-/*
- * check all the possible moves of this piece and return the index with the most valuable piece it can take\
- * returns index of the move with largest value
-*/
-int check_taking(board_t* board, int index, int* largest, int* largest_index) {
-    uint32_t piece = board->cells[index]->piece;
-    int my_align = board->cells[index]->alignment;
-    int row = index / BOARD_DIM;
-    int col = index % BOARD_DIM;
-
-    // generate all possible moves
+int* generate_possible_moves(board_t* board, uint32_t piece, int row, int col) {
     int* moves;
     switch(piece) {
         case B_PAWN:
             moves = malloc(sizeof(int)*4);
-            if (my_align == 1) moves = black_pawnmoves(row, col, board);
-            else moves = white_pawnmoves(row, col, board);
+            moves = black_pawnmoves(row, col, board);
         case W_PAWN:
             moves = malloc(sizeof(int)*4);
-            if (my_align == 1) moves = black_pawnmoves(row, col, board);
-            else moves = white_pawnmoves(row, col, board);
+            moves = white_pawnmoves(row, col, board);
         case B_KNIGHT:
             moves = malloc(sizeof(int)*8);
             moves = knightmoves(row, col, board, my_align);
@@ -158,7 +140,21 @@ int check_taking(board_t* board, int index, int* largest, int* largest_index) {
             moves = malloc(sizeof(int)*8);
             moves = kingmoves(row, col, board, my_align);
     }
+    return moves;
+}
 
+/*
+ * check all the possible moves of this piece and return the index with the most valuable piece it can take\
+ * returns index of the move with largest value
+*/
+int check_taking(board_t* board, int index, int* largest, int* largest_index) {
+    uint32_t piece = board->cells[index]->piece;
+    int my_align = board->cells[index]->alignment;
+    int row = index / BOARD_DIM;
+    int col = index % BOARD_DIM;
+
+    // generate all possible moves
+    int* moves = generate_possible_moves(board, piece, row, col);
     int local_largest = -1;
     int local_largest_index = -1;
 
@@ -174,4 +170,38 @@ int check_taking(board_t* board, int index, int* largest, int* largest_index) {
     
     return local_largest_index;
 
+}
+
+/*
+ * given a target, returns the index of one ai's piece that can take the target
+ * i think this is not the optimal way to do this but it's possible but I'll wait and see if 
+ * someone else comes up with sth better
+*/
+int check_piece_to_take_target(board_t* board, int target) {
+    
+    return -1;
+}
+
+int* return_random_move(board_t* board, int index) {
+    srand(time(NULL));
+    int piece = board->cells[index]->piece;
+    int alignment = board->cells[index]->alignment;
+    int* moves = generate_possible_moves(board, piece, row, col);
+    int* pos = malloc(sizeof(int)*2);
+    int randpos = randint() % sizeof(moves);
+
+    // generate random int
+    while (moves[randpos] == NULL) {
+        randpos = randint() % sizeof(moves);
+    }
+
+    // if highest value piece is the ai's, move the piece away
+    if (alignment == 2) {
+        pos[0] = index;
+        pos[1] = moves[randpos];
+    } else if (alignment == 1) {
+        // if the highest value piece is the user's, check which piece can take that piece
+        pos[0] = check_piece_to_take_target(board, index);
+        pos[1] = index;
+    }
 }
