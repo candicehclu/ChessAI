@@ -136,8 +136,7 @@ void move_piece(board_t* board, int startpos, int endpos) {
  * Return: Array of integers indicating possible positions to move to
  */
 int* rookmoves(int row, int col, board_t* board, int myalign) {
-  // A rook will always have 14 available spaces to move to (NO TOWERING bc i genuinely cannot be
-  // bothered lmao)
+  // A rook will always have 14 available spaces to move to
   int* moves = malloc(sizeof(int) * 14);
   size_t counter = 0;
 
@@ -151,7 +150,7 @@ int* rookmoves(int row, int col, board_t* board, int myalign) {
       counter++;
       break;
     } else {
-      moves[counter] = i;
+      moves[counter] = pos;
       counter++;
     }
   }
@@ -166,7 +165,7 @@ int* rookmoves(int row, int col, board_t* board, int myalign) {
       counter++;
       break;
     } else {
-      moves[counter] = i;
+      moves[counter] = pos;
       counter++;
     }
   }
@@ -181,7 +180,7 @@ int* rookmoves(int row, int col, board_t* board, int myalign) {
       counter++;
       break;
     } else {
-      moves[counter] = i;
+      moves[counter] = pos;
       counter++;
     }
   }
@@ -196,7 +195,7 @@ int* rookmoves(int row, int col, board_t* board, int myalign) {
       counter++;
       break;
     } else {
-      moves[counter] = i;
+      moves[counter] = pos;
       counter++;
     }
   }
@@ -496,8 +495,8 @@ int validate_move(board_t* board, int startpos, int endpos, int myalign) {
     }
   }
 
-  for (int i = 0; i < 27; i++) {  // Check if prompted endpos is within validmoves
-    if (moves[i] == 0) {          // Reached end of list, break out of loop
+  for (int i = 0; i < 28; i++) {  // Check if prompted endpos is within validmoves
+    if (moves[i] == 0 && moves[i+1] == 0) {          // Reached end of list, break out of loop
       break;
     }
     if (endpos == moves[i]) {               // Move found
