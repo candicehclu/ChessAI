@@ -1,12 +1,11 @@
 #include <ctype.h>
+#include <dirent.h>
 #include <locale.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <wchar.h>
-
-#include <dirent.h>
 #include <unistd.h>
+#include <wchar.h>
 
 // #include <curses.h>
 // #include <ncurses.h>
@@ -83,8 +82,7 @@ int main() {
         if (strcmp(command, "quit") == 0) break;
       } while (resume_game(board, command) == 1);
       // until the saved game is successfully resumed
-    }
-    else {
+    } else {
       move_command(command, board, 2);
     }
     move(0, 0);
@@ -149,7 +147,7 @@ int save_game(board_t* board, char* name) {
 
   // open the file in write mode
   FILE* file = fopen(path, "w");
-  if(file == NULL) {
+  if (file == NULL) {
     addstr("failed to open file to save game\n");
     refresh();
     sleep(1);
@@ -160,43 +158,43 @@ int save_game(board_t* board, char* name) {
   for (int i = 0; i < BOARD_DIM * BOARD_DIM; i++) {
     fprintf(file, "%d ", board->cells[i]->alignment);
     switch (board->cells[i]->piece) {
-      case B_ROOK: 
+      case B_ROOK:
         fprintf(file, "%s", "R\n");
         break;
-      case W_ROOK: 
+      case W_ROOK:
         fprintf(file, "%s", "R\n");
         break;
-      case B_KNIGHT: 
+      case B_KNIGHT:
         fprintf(file, "%s", "N\n");
         break;
-      case W_KNIGHT: 
+      case W_KNIGHT:
         fprintf(file, "%s", "N\n");
         break;
-      case B_BISHOP: 
+      case B_BISHOP:
         fprintf(file, "%s", "B\n");
         break;
-      case W_BISHOP: 
+      case W_BISHOP:
         fprintf(file, "%s", "B\n");
         break;
-      case B_QUEEN: 
+      case B_QUEEN:
         fprintf(file, "%s", "Q\n");
         break;
-      case W_QUEEN: 
+      case W_QUEEN:
         fprintf(file, "%s", "Q\n");
         break;
-      case B_KING: 
+      case B_KING:
         fprintf(file, "%s", "K\n");
         break;
-      case W_KING: 
+      case W_KING:
         fprintf(file, "%s", "K\n");
         break;
-      case B_PAWN: 
+      case B_PAWN:
         fprintf(file, "%s", "P\n");
         break;
-      case W_PAWN: 
+      case W_PAWN:
         fprintf(file, "%s", "P\n");
         break;
-      default: 
+      default:
         fprintf(file, "0\n");
         break;
     }
@@ -225,7 +223,7 @@ int save_game(board_t* board, char* name) {
 int print_games() {
   // open the './games' directory
   DIR* dir = opendir("./games");
-  if(dir == NULL) {
+  if (dir == NULL) {
     addstr("failed to open directory for saved game files\n");
     refresh();
     sleep(1);
@@ -265,21 +263,33 @@ int print_games() {
 char32_t get_piece_unicode(char piece_str, int alignment) {
   if (alignment == 1) {
     switch (piece_str) {
-      case 'R': return B_ROOK;
-      case 'N': return B_KNIGHT;
-      case 'B': return B_BISHOP;
-      case 'Q': return B_QUEEN;
-      case 'K': return B_KING;
-      case 'P': return B_PAWN;
+      case 'R':
+        return B_ROOK;
+      case 'N':
+        return B_KNIGHT;
+      case 'B':
+        return B_BISHOP;
+      case 'Q':
+        return B_QUEEN;
+      case 'K':
+        return B_KING;
+      case 'P':
+        return B_PAWN;
     }
   } else if (alignment == 2) {
     switch (piece_str) {
-      case 'R': return W_ROOK;
-      case 'N': return W_KNIGHT;
-      case 'B': return W_BISHOP;
-      case 'Q': return W_QUEEN;
-      case 'K': return W_KING;
-      case 'P': return W_PAWN;
+      case 'R':
+        return W_ROOK;
+      case 'N':
+        return W_KNIGHT;
+      case 'B':
+        return W_BISHOP;
+      case 'Q':
+        return W_QUEEN;
+      case 'K':
+        return W_KING;
+      case 'P':
+        return W_PAWN;
     }
   }
   return (char32_t)0;
@@ -307,7 +317,7 @@ int resume_game(board_t* board, char* name) {
 
   // open the file in read mode
   FILE* file = fopen(path, "r");
-  if(file == NULL) {
+  if (file == NULL) {
     addstr("failed to open file to resume game\n");
     refresh();
     return 1;
@@ -376,7 +386,8 @@ int move_command(char* command, board_t* board, int alignment) {
   // get the end position
   char* end = strsep(&command, " ");
 
-  // check if the move command is invalid (i.e., the positions do not consist of a letter and an integer)
+  // check if the move command is invalid (i.e., the positions do not consist of a letter and an
+  // integer)
   if (!(isalpha(start[0]) && isalpha(end[0]) && isdigit(start[1]) && isdigit(end[1]))) {
     addstr("invalid move (use letters and numbers)\n");
     refresh();
@@ -387,6 +398,19 @@ int move_command(char* command, board_t* board, int alignment) {
   // capitalize both letters
   start[0] = toupper(start[0]);
   end[0] = toupper(end[0]);
+  if (start[1] > '8' || start[1] < '1' || end[1] > '8' || end[1] < '1') {
+    addstr("invalid move: numbers are incorrect\n");
+    refresh();
+    sleep(1);
+    return 1;
+  }
+
+  if (start[0] > 'H' || start[0] < 'A' || end[0] > 'H' || end[0] < 'A') {
+    addstr("invalid move: letters are incorrect\n");
+    refresh();
+    sleep(1);
+    return 1;
+  }
 
   // convert the positions to indices
   int start_col = (int)(start[0]) - (int)'A';
@@ -396,14 +420,14 @@ int move_command(char* command, board_t* board, int alignment) {
 
   int start_int = start_row * BOARD_DIM + start_col;
   int end_int = end_row * BOARD_DIM + end_col;
-  
+
   // validate the move
   int result = validate_move(board, start_int, end_int, 2);
   // the move is valid
   if (result != 1) {
     wrefresh(win);
     refresh();
-  } else { // the move is invalid
+  } else {  // the move is invalid
     wrefresh(win);
     refresh();
   }
