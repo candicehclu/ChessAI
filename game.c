@@ -21,7 +21,7 @@ WINDOW* win;
 int has_game(char* name);
 int save_game(board_t* board, char* name);
 int print_games();
-//char32_t get_piece_unicode(char* piece_str);
+char32_t get_piece_unicode(char piece_str, int alignement);
 int resume_game(board_t* board, char* name);
 int command_to_move(char* command, int* pos, board_t* board, int alignment);
 
@@ -137,6 +137,7 @@ int save_game(board_t* board, char* name) {
   if (has_game(name) == 1) {
     addstr("name is taken\n");
     refresh();
+    sleep(1);
     return 1;
   }
 
@@ -152,26 +153,68 @@ int save_game(board_t* board, char* name) {
   if(file == NULL) {
     addstr("failed to open file to save game\n");
     refresh();
+    sleep(1);
     return 1;
   }
 
   // write the board to the file, writing the information of the cells line-by-line
   for (int i = 0; i < BOARD_DIM * BOARD_DIM; i++) {
-    fprintf(file, "%d", board->cells[i]->alignment);
-    fprintf(file, " ");
-    fprintf(file, "%u", board->cells[i]->piece);
-    fprintf(file, "\n");
+    fprintf(file, "%d ", board->cells[i]->alignment);
+    switch (board->cells[i]->piece) {
+      case B_ROOK: 
+        fprintf(file, "%s", "R\n");
+        break;
+      case W_ROOK: 
+        fprintf(file, "%s", "R\n");
+        break;
+      case B_KNIGHT: 
+        fprintf(file, "%s", "N\n");
+        break;
+      case W_KNIGHT: 
+        fprintf(file, "%s", "N\n");
+        break;
+      case B_BISHOP: 
+        fprintf(file, "%s", "B\n");
+        break;
+      case W_BISHOP: 
+        fprintf(file, "%s", "B\n");
+        break;
+      case B_QUEEN: 
+        fprintf(file, "%s", "Q\n");
+        break;
+      case W_QUEEN: 
+        fprintf(file, "%s", "Q\n");
+        break;
+      case B_KING: 
+        fprintf(file, "%s", "K\n");
+        break;
+      case W_KING: 
+        fprintf(file, "%s", "K\n");
+        break;
+      case B_PAWN: 
+        fprintf(file, "%s", "P\n");
+        break;
+      case W_PAWN: 
+        fprintf(file, "%s", "P\n");
+        break;
+      default: 
+        fprintf(file, "0\n");
+        break;
+    }
+    // fprintf(file, "%u", board->cells[i]->piece);
   }
 
   // close the file
   if (fclose(file) != 0) {
     addstr("failed to close file to save game\n");
     refresh();
+    sleep(1);
     return 1;
   }
 
   addstr("game is successfully saved\n");
   refresh();
+  sleep(1);
 
   free(path);
   return 0;
@@ -187,6 +230,7 @@ int print_games() {
   if(dir == NULL) {
     addstr("failed to open directory for saved game files\n");
     refresh();
+    sleep(1);
     return 1;
   }
   addstr("\n");
@@ -210,42 +254,50 @@ int print_games() {
   if (closedir(dir) == -1) {
     addstr("failed to close directory for saved game files\n");
     refresh();
+    sleep(1);
     return 1;
   }
 
   return 0;
 }
 
-// /*
-//  * return the unicode value of the 'piece_str'
-//  */
-// char32_t get_piece_unicode(char32_t piece_str) {
-//   if (strcmp(piece_str, "265C") == 0) return B_ROOK;
-//   if (strcmp(piece_str, "265E") == 0) return B_KNIGHT;
-//   if (strcmp(piece_str, "265D") == 0) return B_BISHOP;
-//   if (strcmp(piece_str, "265B") == 0) return B_QUEEN;
-//   if (strcmp(piece_str, "265A") == 0) return B_KING;
-//   if (strcmp(piece_str, "265F") == 0) return B_PAWN;
-//   if (strcmp(piece_str, "2656") == 0) return W_ROOK;
-//   if (strcmp(piece_str, "2658") == 0) return W_KNIGHT;
-//   if (strcmp(piece_str, "2657") == 0) return W_BISHOP;
-//   if (strcmp(piece_str, "2655") == 0) return W_QUEEN;
-//   if (strcmp(piece_str, "2654") == 0) return W_KING;
-//   if (strcmp(piece_str, "2659") == 0) return W_PAWN;
-//   // if (strcmp(piece_str, "0x0000265C") == 0) return B_ROOK;
-//   // if (strcmp(piece_str, "0x0000265E") == 0) return B_KNIGHT;
-//   // if (strcmp(piece_str, "0x0000265D") == 0) return B_BISHOP;
-//   // if (strcmp(piece_str, "0x0000265B") == 0) return B_QUEEN;
-//   // if (strcmp(piece_str, "0x0000265A") == 0) return B_KING;
-//   // if (strcmp(piece_str, "0x0000265F") == 0) return B_PAWN;
-//   // if (strcmp(piece_str, "0x00002656") == 0) return W_ROOK;
-//   // if (strcmp(piece_str, "0x00002658") == 0) return W_KNIGHT;
-//   // if (strcmp(piece_str, "0x00002657") == 0) return W_BISHOP;
-//   // if (strcmp(piece_str, "0x00002655") == 0) return W_QUEEN;
-//   // if (strcmp(piece_str, "0x00002654") == 0) return W_KING;
-//   // if (strcmp(piece_str, "0x00002659") == 0) return W_PAWN;
-//   return (char32_t)0;
-// }
+/*
+ * return the unicode value of the 'piece_str'
+ */
+char32_t get_piece_unicode(char piece_str, int alignment) {
+  if (alignment == 1) {
+    switch (piece_str) {
+      case 'R': return B_ROOK;
+      case 'N': return B_KNIGHT;
+      case 'B': return B_BISHOP;
+      case 'Q': return B_QUEEN;
+      case 'K': return B_KING;
+      case 'P': return B_PAWN;
+    }
+  } else if (alignment == 2) {
+    switch (piece_str) {
+      case 'R': return W_ROOK;
+      case 'N': return W_KNIGHT;
+      case 'B': return W_BISHOP;
+      case 'Q': return W_QUEEN;
+      case 'K': return W_KING;
+      case 'P': return W_PAWN;
+    }
+  }
+  return (char32_t)0;
+  // if (strcmp(piece_str, "0x0000265C") == 0) return B_ROOK;
+  // if (strcmp(piece_str, "0x0000265E") == 0) return B_KNIGHT;
+  // if (strcmp(piece_str, "0x0000265D") == 0) return B_BISHOP;
+  // if (strcmp(piece_str, "0x0000265B") == 0) return B_QUEEN;
+  // if (strcmp(piece_str, "0x0000265A") == 0) return B_KING;
+  // if (strcmp(piece_str, "0x0000265F") == 0) return B_PAWN;
+  // if (strcmp(piece_str, "0x00002656") == 0) return W_ROOK;
+  // if (strcmp(piece_str, "0x00002658") == 0) return W_KNIGHT;
+  // if (strcmp(piece_str, "0x00002657") == 0) return W_BISHOP;
+  // if (strcmp(piece_str, "0x00002655") == 0) return W_QUEEN;
+  // if (strcmp(piece_str, "0x00002654") == 0) return W_KING;
+  // if (strcmp(piece_str, "0x00002659") == 0) return W_PAWN;
+}
 
 /*
  * update the board to that of the 'name' saved game in the './games' directory
@@ -256,6 +308,7 @@ int resume_game(board_t* board, char* name) {
   if (has_game(name) == 0) {
     addstr("name does not exist\n");
     refresh();
+    sleep(1);
     return 1;
   }
 
@@ -276,24 +329,25 @@ int resume_game(board_t* board, char* name) {
 
   char* line = malloc(sizeof(char) * 21);
   int alignment;
-  int piece;
+  char piece;
   //size_t size;
   // update the board cell-by-cell
   for (int i = 0; i < BOARD_DIM * BOARD_DIM; i++) {
     // read the file line-by-line
     if (fgets(line, 21, file) != NULL) {
-      if (sscanf(line, "%d %u", &alignment, &piece) == 2) {
-        //printf("%d %u   ", alignment, piece);
-        // board->cells[i]->alignment = alignment;
-        // board->cells[i]->piece = get_piece_unicode(piece);
+      if (sscanf(line, "%d %c", &alignment, &piece) == 2) {
+        board->cells[i]->alignment = alignment;
+        board->cells[i]->piece = get_piece_unicode(piece, alignment);
       } else {
         addstr("failed to read file to resume game\n");
         refresh();
+        sleep(1);
         return 1;
       }
     } else {
       addstr("failed to read file to resume game\n");
       refresh();
+      sleep(1);
       return 1;
     }
     //getline(&line, &size, file);
@@ -315,6 +369,7 @@ int resume_game(board_t* board, char* name) {
   if (fclose(file) != 0) {
     addstr("failed to close file to resume game\n");
     refresh();
+    sleep(1);
     return 1;
   }
 

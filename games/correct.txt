@@ -1,0 +1,220 @@
+1 R
+R
+N
+N
+B
+B
+Q
+Q
+K
+K
+P
+P
+0
+1 N
+N
+B
+B
+Q
+Q
+K
+K
+P
+P
+0
+1 B
+B
+Q
+Q
+K
+K
+P
+P
+0
+1 Q
+Q
+K
+K
+P
+P
+0
+1 K
+K
+P
+P
+0
+1 B
+B
+Q
+Q
+K
+K
+P
+P
+0
+1 N
+N
+B
+B
+Q
+Q
+K
+K
+P
+P
+0
+1 R
+R
+N
+N
+B
+B
+Q
+Q
+K
+K
+P
+P
+0
+1 P
+P
+0
+1 P
+P
+0
+1 P
+P
+0
+1 P
+P
+0
+1 P
+P
+0
+1 P
+P
+0
+1 P
+P
+0
+1 P
+P
+0
+0 0
+0 0
+0 0
+0 0
+0 0
+0 0
+0 0
+0 0
+2 P
+0
+0 0
+0 0
+0 0
+0 0
+0 0
+0 0
+0 0
+0 0
+0 0
+0 0
+0 0
+0 0
+0 0
+0 0
+0 0
+0 0
+0 0
+0 0
+0 0
+0 0
+0 0
+0 0
+0 0
+0 0
+2 P
+0
+2 P
+0
+2 P
+0
+2 P
+0
+2 P
+0
+2 P
+0
+2 P
+0
+2 R
+N
+N
+B
+B
+Q
+Q
+K
+K
+P
+P
+0
+2 N
+B
+B
+Q
+Q
+K
+K
+P
+P
+0
+2 B
+Q
+Q
+K
+K
+P
+P
+0
+2 Q
+K
+K
+P
+P
+0
+2 K
+P
+P
+0
+2 B
+Q
+Q
+K
+K
+P
+P
+0
+2 N
+B
+B
+Q
+Q
+K
+K
+P
+P
+0
+2 R
+N
+N
+B
+B
+Q
+Q
+K
+K
+P
+P
+0
