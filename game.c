@@ -23,7 +23,7 @@ int save_game(board_t* board, char* name);
 int print_games();
 char32_t get_piece_unicode(char piece_str, int alignement);
 int resume_game(board_t* board, char* name);
-int command_to_move(char* command, int* pos, board_t* board, int alignment);
+int move_command(char* command, board_t* board, int alignment);
 
 int main() {
   // task_t user_move_task;
@@ -85,8 +85,7 @@ int main() {
       // until the saved game is successfully resumed
     }
     else {
-    // if it is a valid move, process input string and move piece
-      command_to_move(command, pos, board, 2);
+      move_command(command, board, 2);
     }
     move(0, 0);
     printboard(board, win);
@@ -201,7 +200,6 @@ int save_game(board_t* board, char* name) {
         fprintf(file, "0\n");
         break;
     }
-    // fprintf(file, "%u", board->cells[i]->piece);
   }
 
   // close the file
@@ -285,18 +283,6 @@ char32_t get_piece_unicode(char piece_str, int alignment) {
     }
   }
   return (char32_t)0;
-  // if (strcmp(piece_str, "0x0000265C") == 0) return B_ROOK;
-  // if (strcmp(piece_str, "0x0000265E") == 0) return B_KNIGHT;
-  // if (strcmp(piece_str, "0x0000265D") == 0) return B_BISHOP;
-  // if (strcmp(piece_str, "0x0000265B") == 0) return B_QUEEN;
-  // if (strcmp(piece_str, "0x0000265A") == 0) return B_KING;
-  // if (strcmp(piece_str, "0x0000265F") == 0) return B_PAWN;
-  // if (strcmp(piece_str, "0x00002656") == 0) return W_ROOK;
-  // if (strcmp(piece_str, "0x00002658") == 0) return W_KNIGHT;
-  // if (strcmp(piece_str, "0x00002657") == 0) return W_BISHOP;
-  // if (strcmp(piece_str, "0x00002655") == 0) return W_QUEEN;
-  // if (strcmp(piece_str, "0x00002654") == 0) return W_KING;
-  // if (strcmp(piece_str, "0x00002659") == 0) return W_PAWN;
 }
 
 /*
@@ -330,13 +316,14 @@ int resume_game(board_t* board, char* name) {
   char* line = malloc(sizeof(char) * 21);
   int alignment;
   char piece;
-  //size_t size;
   // update the board cell-by-cell
   for (int i = 0; i < BOARD_DIM * BOARD_DIM; i++) {
     // read the file line-by-line
     if (fgets(line, 21, file) != NULL) {
       if (sscanf(line, "%d %c", &alignment, &piece) == 2) {
+        // update the alignment
         board->cells[i]->alignment = alignment;
+        // update the piece
         board->cells[i]->piece = get_piece_unicode(piece, alignment);
       } else {
         addstr("failed to read file to resume game\n");
@@ -350,18 +337,6 @@ int resume_game(board_t* board, char* name) {
       sleep(1);
       return 1;
     }
-    //getline(&line, &size, file);
-    // printf("%d ", atoi(strsep(&line, " ")));
-    // printf("%s   ", strsep(&line, " "));
-    // // update the alignment of the cell
-    // board->cells[i]->alignment = atoi(strsep(&line, " "));
-    // // update the piece of the cell
-    // board->cells[i]->piece = get_unicode(strsep(&line, " "));
-    // char* info[2];
-    // info[0] = strsep(&line, " ");
-    // info[1] = strsep(&line, " ");
-    // board->cells[i]->alignment = atoi(info[0]);
-    // board->cells[i]->piece = get_unicode(info[1]);
   }
   free(line);
 
@@ -378,56 +353,57 @@ int resume_game(board_t* board, char* name) {
 }
 
 /*
- * return 0 if move command is valid, else return 1
-*/
-int command_to_move(char* command, int* pos, board_t* board, int alignment) {
-
-  char* pos_str[2];
-
-  // check that strlen is 6
+ * complete the move and update the board
+ * return 0 if successful, otherwise 1
+ */
+int move_command(char* command, board_t* board, int alignment) {
+  // check if the move command is invalid (i.e., input length)
   if (strlen(command) != 5) {
-    addstr("Invalid input length\n");
+    addstr("invalid input length for move\n");
     refresh();
+    sleep(1);
     return 1;
   }
 
-  // get rid of \n
-  // command[strlen(command) - 1] = '\0';
-
-  //check if third character is space, otherwise say wrong format
-
-  // string split
-  pos_str[0] = strsep(&command, " ");
-  pos_str[1] = strsep(&command, " ");
-
-  // check if if both position strings composes of an upper case letter and an int
-  if (!(isalpha(pos_str[0][0]) && isalpha(pos_str[1][0]) && isdigit(pos_str[0][1]) && isdigit(pos_str[1][1]))) {
-    addstr("Invalid move\n");
+  // get the start position
+  char* start = strsep(&command, " ");
+  if (command == NULL) {
+    addstr("invalid move (use letters and numbers)\n");
     refresh();
+    sleep(1);
+    return 1;
+  }
+  // get the end position
+  char* end = strsep(&command, " ");
+
+  // check if the move command is invalid (i.e., the positions do not consist of a letter and an integer)
+  if (!(isalpha(start[0]) && isalpha(end[0]) && isdigit(start[1]) && isdigit(end[1]))) {
+    addstr("invalid move (use letters and numbers)\n");
+    refresh();
+    sleep(1);
     return 1;
   }
 
-  // make sure both are upper
-  pos_str[0][0] = toupper(pos_str[0][0]);
-  pos_str[1][0] = toupper(pos_str[1][0]);
+  // capitalize both letters
+  start[0] = toupper(start[0]);
+  end[0] = toupper(end[0]);
 
-  // convert
-  int start_col = (int)(pos_str[0][0]) - (int)'A';
-  int start_row = (8 - ((int)(pos_str[0][1]) - '0'));
+  // convert the positions to indices
+  int start_col = (int)(start[0]) - (int)'A';
+  int start_row = (8 - ((int)(start[1]) - '0'));
+  int end_col = (int)(end[0]) - (int)'A';
+  int end_row = (8 - ((int)(end[1]) - '0'));
 
-  int end_col = (int)(pos_str[1][0]) - (int)'A';
-  int end_row = (8 - ((int)(pos_str[1][1]) - '0'));
-
-  pos[0] = start_row * BOARD_DIM + start_col;
-  pos[1] = end_row * BOARD_DIM + end_col;
-
-  int result = validate_move(board, pos[0], pos[1], 2);
+  int start_int = start_row * BOARD_DIM + start_col;
+  int end_int = end_row * BOARD_DIM + end_col;
+  
+  // validate the move
+  int result = validate_move(board, start_int, end_int, 2);
+  // the move is valid
   if (result != 1) {
-    addstr("YAYYYY!\n");
     wrefresh(win);
     refresh();
-  } else {
-    addstr("NAYYY!\n");
+  } else { // the move is invalid
     wrefresh(win);
     refresh();
   }
@@ -436,14 +412,14 @@ int command_to_move(char* command, int* pos, board_t* board, int alignment) {
 
 /*
  * make the move for user
-*/
+ */
 void user_move(char* command, int* pos, board_t* board, int alignment) {
-  command_to_move(command, pos, board, alignment);
+  move_command(command, board, alignment);
 }
 
 /*
  * runs the ai to evaluate next move and make the move
-*/
+ */
 void ai_move() {
   // let ai generate move and move
 }
