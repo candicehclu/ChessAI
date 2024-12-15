@@ -14,8 +14,10 @@
 #include "chess.h"
 #include "printboard.h"
 #include "scheduler.h"
+#include "ai.h"
 
 WINDOW* win;
+board_t* board;
 
 int has_game(char* name);
 int save_game(board_t* board, char* name);
@@ -23,31 +25,45 @@ int print_games();
 char32_t get_piece_unicode(char piece_str, int alignement);
 int resume_game(board_t* board, char* name);
 int move_command(char* command, board_t* board, int alignment);
+void user_move(char* command);
+void computer_move();
+void end_game();
 
 int main() {
+  // tasks:
+  //   1) begins the game
+  //   2) user makes a move
+  //   3) computer makes a move
+
+  // // create tasks for the game tasks
   // task_t user_move_task;
-  // task_t ai_move_task;
-  // // create tasks for each task in the game
+  // task_t computer_move_task;
   // task_create(&user_move_task, user_move);
   // task_create(&ai_move_task, ai_move);
+  //
+  // // wait for the game tasks to exit
+  // task_wait(user_move_task);
+  // task_wait(ai_move_task);
 
   setlocale(LC_ALL, "");
 
-  // initialize the board
-  board_t* board = malloc(sizeof(board_t));
-  init_board(board);
-
   // initialize the window
   win = initscr();
+  if (win == NULL) {
+    fprintf(stderr, "error initializing ncurses\n");
+    return 1;
+  }
   cbreak();
   clear();
 
+  // initialize the board
+  board = malloc(sizeof(board_t));
+  init_board(board);
   // print the board to the window
   printboard(board, win);
 
   // malloc memory for the user input
   char* command = malloc(sizeof(char) * 100);
-  int* pos = malloc(sizeof(char) * 3 * 2);
 
   while (true) {
     move(10, 0);
@@ -84,6 +100,7 @@ int main() {
       // until the saved game is successfully resumed
     } else {
       move_command(command, board, 2);
+      check_board(board);
     }
     move(0, 0);
     printboard(board, win);
@@ -91,6 +108,11 @@ int main() {
     // else error
   }
 
+  // // display the end of game message
+  // end_game();
+
+  // clean up the window
+  delwin(win);
   endwin();
 
   // free dynamically allocated memory
@@ -99,9 +121,15 @@ int main() {
   }
   free(board);
   free(command);
-  free(pos);
 
   return 0;
+}
+
+/*
+ * make the move for user
+ */
+void user_move(char* command) {
+  //move_command(command, board, alignment);
 }
 
 /*
@@ -398,15 +426,18 @@ int move_command(char* command, board_t* board, int alignment) {
   // capitalize both letters
   start[0] = toupper(start[0]);
   end[0] = toupper(end[0]);
-  if (start[1] > '8' || start[1] < '1' || end[1] > '8' || end[1] < '1') {
-    addstr("invalid move: numbers are incorrect\n");
+
+  // checj if the move command is invalid (i.e., the letter values are invalid)
+  if (start[0] > 'H' || start[0] < 'A' || end[0] > 'H' || end[0] < 'A') {
+    addstr("invalid move (letters are invalid)\n");
     refresh();
     sleep(1);
     return 1;
   }
 
-  if (start[0] > 'H' || start[0] < 'A' || end[0] > 'H' || end[0] < 'A') {
-    addstr("invalid move: letters are incorrect\n");
+  // check if the move command is invalid (i.e., the integer values are invalid)
+  if (start[1] > '8' || start[1] < '1' || end[1] > '8' || end[1] < '1') {
+    addstr("invalid move (numbers are invalid)\n");
     refresh();
     sleep(1);
     return 1;
@@ -435,15 +466,18 @@ int move_command(char* command, board_t* board, int alignment) {
 }
 
 /*
- * make the move for user
+ * display the end of game message
  */
-void user_move(char* command, int* pos, board_t* board, int alignment) {
-  move_command(command, board, alignment);
+void end_game() {
+  // TO-DO
+  addstr("game over\n");
+  refresh();
+  sleep(2);
 }
 
 /*
  * runs the ai to evaluate next move and make the move
  */
-void ai_move() {
+void computer_move() {
   // let ai generate move and move
 }

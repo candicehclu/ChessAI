@@ -7,5 +7,5 @@ all: chess
 clean:
 	rm -f chess
 
-chess: game.c printboard.c chess.c chess.h
-	$(CC) $(CFLAGS) `pkg-config --cflags ncursesw` -o chess game.c printboard.c chess.c `pkg-config --libs ncursesw`
+chess: game.c printboard.c chess.c chess.h ai.c ai.h
+	$(CC) $(CFLAGS) `pkg-config --cflags ncursesw` -o chess game.c printboard.c chess.c ai.c `pkg-config --libs ncursesw`
