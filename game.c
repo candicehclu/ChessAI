@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+// #incldue <time.h>
 #include <unistd.h>
 #include <wchar.h>
 
@@ -14,10 +15,6 @@
 #include "ai.h"
 #include "chess.h"
 #include "printboard.h"
-#include "scheduler.h"
-
-WINDOW* win;
-board_t* board;
 
 int has_game(char* name);
 int save_game(board_t* board, char* name);
@@ -25,26 +22,13 @@ int print_games();
 char32_t get_piece_unicode(char piece_str, int alignement);
 int resume_game(board_t* board, char* name);
 int move_command(char* command, board_t* board, int alignment);
-void user_move(char* command);
-void computer_move();
-void end_game();
+void help_message();
+void endgame_message();
+
+WINDOW* win;
+board_t* board;
 
 int main() {
-  // tasks:
-  //   1) begins the game
-  //   2) user makes a move
-  //   3) computer makes a move
-
-  // // create tasks for the game tasks
-  // task_t user_move_task;
-  // task_t computer_move_task;
-  // task_create(&user_move_task, user_move);
-  // task_create(&ai_move_task, ai_move);
-  //
-  // // wait for the game tasks to exit
-  // task_wait(user_move_task);
-  // task_wait(ai_move_task);
-
   setlocale(LC_ALL, "");
 
   // initialize the window
@@ -59,11 +43,19 @@ int main() {
   // initialize the board
   board = malloc(sizeof(board_t));
   init_board(board);
-  // print the board to the window
-  printboard(board, win);
 
   // malloc memory for the user input
   char* command = malloc(sizeof(char) * 100);
+
+  // print the introduction message to the window
+  addstr("\nLET'S PLAY CHEZZ\n");
+  refresh();
+  help_message();
+  move(0, 0);
+  clrtobot();
+
+  // print the board to the window
+  printboard(board, win);
 
   while (true) {
     move(10, 0);
@@ -75,6 +67,10 @@ int main() {
 
     // the user inputs the command to quit the game
     if (strcmp(command, "quit") == 0) break;
+    // the user inputs the command to view the help message
+    else if (strcmp(command, "help") == 0) {
+      help_message();
+    }
     // the user inputs the command to save the game
     else if (strcmp(command, "save") == 0) {
       do {
@@ -99,17 +95,20 @@ int main() {
       } while (resume_game(board, command) == 1);
       // until the saved game is successfully resumed
     } else {
-      if (move_command(command, board, 2) == 0) {
+      int result = move_command(command, board, 2);
+      if (result == 0) {
         addstr("AI is thinking really hard!");
         refresh();
+        move(0, 0);
+        printboard(board, win);
         sleep(1);
         check_board(board);
+      } else if (result == 2) {
+        init_board(board);
       }
     }
     move(0, 0);
     printboard(board, win);
-    sleep(0.5);
-    // else error
   }
 
   // // display the end of game message
@@ -127,13 +126,6 @@ int main() {
   free(command);
 
   return 0;
-}
-
-/*
- * make the move for user
- */
-void user_move(char* command) {
-  // move_command(command, board, alignment);
 }
 
 /*
@@ -396,7 +388,7 @@ int resume_game(board_t* board, char* name) {
 
 /*
  * complete the move and update the board
- * return 0 if successful, otherwise 1
+ * return 0 if successful, 2 if user wins, otherwise 1
  */
 int move_command(char* command, board_t* board, int alignment) {
   // check if the move command is invalid (i.e., input length)
@@ -456,14 +448,51 @@ int move_command(char* command, board_t* board, int alignment) {
   int start_int = start_row * BOARD_DIM + start_col;
   int end_int = end_row * BOARD_DIM + end_col;
 
+  // check for castle
+  // first scenario: long path
+  if (start_int == 60 && end_int == 56) {
+    // first check if middle is empty
+    if (board->cells[57]->alignment == 0 && board->cells[58]->alignment == 0 &&
+        board->cells[59]->alignment == 0) {
+      // then check if startpos and endpos are correct pieces
+      if (board->cells[start_int]->piece == W_KING && board->cells[end_int]->piece == W_ROOK) {
+        castle(board, end_int);
+        wrefresh(win);
+        refresh();
+        return 0;
+      }
+    }
+  }
+
+  // second scenario: short path
+  if (start_int == 60 && end_int == 63) {
+    // first check if middle is empty
+    if (board->cells[61]->alignment == 0 && board->cells[62]->alignment == 0) {
+      // then check if startpos and endpos are correct pieces
+      if (board->cells[start_int]->piece == W_KING && board->cells[end_int]->piece == W_ROOK) {
+        castle(board, end_int);
+        wrefresh(win);
+        refresh();
+        return 0;
+      }
+    }
+  }
+
   // validate the move
   int result = validate_move(board, start_int, end_int, 2);
   // the move is valid
-  if (result != 1) {
+  if (result == 0) {
     wrefresh(win);
     refresh();
+  } else if (result == 2) {
+    clrtobot();
+    move(0, 0);
+    printboard(board, win);
+    winning_animate(win);
+    init_board(board);
+    return 2;
   } else {  // the move is invalid
-    addstr("Invalid Move!");
+    addstr("invalid chess move\n");
     refresh();
     sleep(1);
     return 1;
@@ -472,18 +501,24 @@ int move_command(char* command, board_t* board, int alignment) {
 }
 
 /*
- * display the end of game message
+ * display the help message
  */
-void end_game() {
-  // TO-DO
-  addstr("game over\n");
+void help_message() {
+  addstr("\nthe following are the valid commands:\n");
+  addstr("\t\"save\": to save the current game\n");
+  addstr("\t\"resume\": to resume a previously saved game\n");
+  addstr("\t\"quit\": to quit the current game or the current command\n");
+  addstr("\t\"help\": to view this message again\n");
+  addstr("otherwise, input a move (e.g., \"B1 C3\") \n");
   refresh();
-  sleep(2);
+  getchar();
 }
 
 /*
- * runs the ai to evaluate next move and make the move
+ * display the end of game message
  */
-void computer_move() {
-  // let ai generate move and move
+void endgame_message() {
+  // TODO
+  addstr("game over\n");
+  refresh();
 }

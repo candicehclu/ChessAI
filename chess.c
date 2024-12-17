@@ -65,7 +65,6 @@ void initialize(board_t* board) {
   }
 }
 
-
 void init_board(board_t* board) {
   // malloc for all cells
   for (int i = 0; i < BOARD_DIM * BOARD_DIM; i++) {
@@ -344,7 +343,6 @@ int* queenmoves(int row, int col, board_t* board, int myalign) {
     }
   }
 
-
   memcpy(&moves[14], diagonalmoves, 13 * sizeof(int));
 
   return moves;
@@ -474,6 +472,26 @@ int* black_pawnmoves(int row, int col, board_t* board) {
 
   return moves;
 }
+// assumes castling is valid, simply move the pieces
+int castle(board_t* board, int endpos) {
+  if (endpos == 56) {
+    // reset alignment and piece
+    board->cells[56]->alignment = 0;
+    board->cells[60]->alignment = 0;
+    board->cells[58]->piece = W_KING;
+    board->cells[58]->alignment = 2;
+    board->cells[59]->piece = W_ROOK;
+    board->cells[59]->alignment = 2;
+  } else if (endpos == 63) {
+    board->cells[60]->alignment = 0;
+    board->cells[63]->alignment = 0;
+    board->cells[62]->piece = W_KING;
+    board->cells[62]->alignment = 2;
+    board->cells[61]->piece = W_ROOK;
+    board->cells[61]->alignment = 2;
+  }
+  return 0;
+}
 
 int validate_move(board_t* board, int startpos, int endpos, int myalign) {
   char32_t mypiece = board->cells[startpos]->piece;
@@ -528,13 +546,18 @@ int validate_move(board_t* board, int startpos, int endpos, int myalign) {
   }
 
   for (int i = 0; i < 28; i++) {  // Check if prompted endpos is within validmoves
-    if (moves[i] == -1) {          // Reached end of list, break out of loop
+    if (moves[i] == -1) {         // Reached end of list, break out of loop
       break;
     }
-    if (endpos == moves[i]) {               // Move found
+    if (endpos == moves[i]) {                       // Move found
+      if (board->cells[endpos]->piece == B_KING) {  // game over, user wins
+        move_piece(board, startpos, endpos);        // Make the move
+        free(moves);
+        return 2;
+      }
       move_piece(board, startpos, endpos);  // Make the move
       free(moves);
-      return 0;                             // Return 1 for success
+      return 0;  // Return 1 for success
     }
   }
 

@@ -83,3 +83,5 @@ int* white_pawnmoves(int row, int col, board_t* board);
 int* black_pawnmoves(int row, int col, board_t* board);
 
 int validate_move(board_t* board, int startpos, int endpos, int myalign);
+
+int castle(board_t* board, int endpos);

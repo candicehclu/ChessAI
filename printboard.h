@@ -21,3 +21,13 @@ void printboard(board_t* board, WINDOW* win);
  * initializes game board
 */
 void init_board(board_t* board);
+
+/*
+ * winning animation
+*/
+void winning_animate();
+
+/*
+ * losing animation
+*/
+void losing_animate();
