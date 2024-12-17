@@ -12,7 +12,7 @@
 // declare global lock
 pthread_mutex_t lock = PTHREAD_MUTEX_INITIALIZER;
 
-int largest = 0;
+int largest = -9999;
 int global_start = -1;
 int global_end = -1;
 
@@ -22,60 +22,63 @@ int check_board(board_t* board) {
   args_t args_arr[BOARD_DIM * BOARD_DIM];
 
   // saves the move of greatest value on the entire chessboard
-  largest = 0;
+  largest = -9999;
 
   // saves the index of the move of greatest value
   global_start = -1;
   global_end = -1;
 
+  int init_score = board_scan(board, 1, 2);
+
   // create one thread for each cell
   for (int i = 0; i < BOARD_DIM * BOARD_DIM; i++) {
     // initialize args
-    args_t args;
-    args.board = board;
-    args.index = i;
-    args_arr[i] = args;
+    args_arr[i].board = board;
+    args_arr[i].index = i;
+    args_arr[i].score = init_score;
 
     // Maybe we should malloc if it seg faults
     //  create thread
-    if (pthread_create(&threads[i], NULL, &check_index, (void*)&args_arr[i]) != 0) {
+    if (pthread_create(&threads[i], NULL, check_index, &args_arr[i]) != 0) {
       perror("thread creation error");
       exit(EXIT_FAILURE);
     }
+    // printf("\nthread creation yeahhhhhh\n");
   }
 
   // join threads
   for (int i = 0; i < BOARD_DIM * BOARD_DIM; i++) {
     if (pthread_join(threads[i], NULL)) {
       perror("pthread_join failed\n");
-			exit(EXIT_FAILURE);
+      exit(EXIT_FAILURE);
     }
   }
 
   // secondary check on the current value for largest and largest_value
   move_piece(board, global_start, global_end);
-	return 0;
+  return 0;
 }
 
-// scans the board, returns the negative version of the most valuable piece
+// scans the board, returns the negative version of the most valuable piece that can be eaten
 int board_scan(board_t* board, int my_align, int opp_align) {
-  int max = 0;
-  for (int i = 0; i < 64; i++) {
-    node_t* node = board->cells[i];
-    if (node->alignment == opp_align) {
-      int* moves = generate_possible_moves(board, node->piece, i / 8, i % 8);
-      for (int i = 0; i < 28; i++) {
-        if (moves[i] == 0 && moves[i + 1] == 0) {
+  int max = 0;                       // Sets the max to 0
+  for (int i = 0; i < 64; i++) {     // For every possible node
+    node_t* node = board->cells[i];  
+    if (node->alignment == opp_align) { // Checks if opposing piece
+      int* moves = generate_possible_moves(board, node->piece, i / 8, i % 8); // Get moves
+      for (int i = 0; i < 28; i++) { // Check if can eat
+        if (moves[i] == -1) {
           break;
         }
-        if (board->cells[moves[i]]->alignment == my_align) {
-          if (calculate_value(board->cells[moves[i]]->piece) > max) {
+        if (board->cells[moves[i]]->alignment == my_align) { // If can be eaten
+          if (calculate_value(board->cells[moves[i]]->piece) >= max) {
             max = calculate_value(board->cells[moves[i]]->piece);
           }
         }
       }
     }
   }
+  // printf("\nscannnnnnn\n");
   return (-1 * max);
 }
 
@@ -112,6 +115,7 @@ void* check_index(void* arguments) {
   args_t* args = (args_t*)arguments;
   board_t* board = args->board;
   int index = args->index;
+  // printf("\nargs unpacked!!!!\n");
 
   // declare local variable to store index of move of largest value
   int score = args->score;
@@ -121,14 +125,20 @@ void* check_index(void* arguments) {
   if (board->cells[index]->alignment == 1) {
     // Generate possible moves for my piece
     int* moves = generate_possible_moves(board, board->cells[index]->piece, index / 8, index % 8);
-    for (int i = 0; i < 28; i++) {  // For every move possible
+    // printf("\nmoves generated!!!!\n");
+    for (int i = 0; i < 27; i++) {  // For every move possible
+      if (moves[i] == -1) {
+        break;
+      }
       int endpos = moves[i];
       int newscore = simulate_move(board, index, endpos);
-      if (newscore > score) {
+      // printf("\nmoves simulated!!!!\n");
+      if (newscore >= score) {
         score = newscore;
-        max_value_index = moves[i];
+        max_value_index = endpos;
       }
     }
+    free(moves);
   } else {
     // if it's not my piece do nothing
     return NULL;
@@ -136,12 +146,13 @@ void* check_index(void* arguments) {
 
   // Put a lock on the global score and global best move, modify it if local score is better
   pthread_mutex_lock(&lock);
-  if (score > largest && max_value_index != -1) {
+  if (score >= largest && max_value_index != -1) {
     largest = score;
     global_start = index;
     global_end = max_value_index;
   }
   pthread_mutex_unlock(&lock);
+  // printf("\nmutexes passed!!!!\n");
 
   return (void*)NULL;
 }
@@ -183,48 +194,40 @@ int* generate_possible_moves(board_t* board, uint32_t piece, int row, int col) {
   int* moves;
   switch (piece) {
     case B_PAWN:
-      moves = malloc(sizeof(int) * 4);
       moves = black_pawnmoves(row, col, board);
       break;
     case W_PAWN:
-      moves = malloc(sizeof(int) * 4);
       moves = white_pawnmoves(row, col, board);
       break;
     case B_KNIGHT:
-      moves = malloc(sizeof(int) * 8);
       moves = knightmoves(row, col, board, 1);
       break;
     case W_KNIGHT:
-      moves = malloc(sizeof(int) * 8);
-      moves = knightmoves(row, col, board, 1);
+      moves = knightmoves(row, col, board, 2);
       break;
     case B_BISHOP:
-      moves = malloc(sizeof(int) * 13);
       moves = bishopmoves(row, col, board, 1);
       break;
     case W_BISHOP:
-      moves = malloc(sizeof(int) * 13);
-      moves = bishopmoves(row, col, board, 1);
+      moves = bishopmoves(row, col, board, 2);
       break;
-    case B_ROOK || W_ROOK:
-      moves = malloc(sizeof(int) * 14);
+    case B_ROOK:
       moves = rookmoves(row, col, board, 1);
       break;
+    case W_ROOK:
+      moves = rookmoves(row, col, board, 2);
+      break;
     case B_QUEEN:
-      moves = malloc(sizeof(int) * 27);
       moves = queenmoves(row, col, board, 1);
       break;
     case W_QUEEN:
-      moves = malloc(sizeof(int) * 27);
-      moves = queenmoves(row, col, board, 1);
+      moves = queenmoves(row, col, board, 2);
       break;
     case B_KING:
-      moves = malloc(sizeof(int) * 8);
       moves = kingmoves(row, col, board, 1);
       break;
     case W_KING:
-      moves = malloc(sizeof(int) * 8);
-      moves = kingmoves(row, col, board, 1);
+      moves = kingmoves(row, col, board, 2);
       break;
   }
   return moves;

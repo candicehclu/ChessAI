@@ -1,5 +1,5 @@
 CC := gcc
-CFLAGS := -Wall
+CFLAGS := -Wall -g
 CPACK := pkg-config --libs=ncursesw 
 
 all: chess

@@ -137,7 +137,7 @@ void move_piece(board_t* board, int startpos, int endpos) {
  */
 int* rookmoves(int row, int col, board_t* board, int myalign) {
   // A rook will always have 14 available spaces to move to
-  int* moves = malloc(sizeof(int) * 14);
+  int* moves = malloc(sizeof(int) * 27);
   size_t counter = 0;
 
   // Rightward Movements in its own row
@@ -200,12 +200,16 @@ int* rookmoves(int row, int col, board_t* board, int myalign) {
     }
   }
 
+  for (int i = counter; i < 27; i++) {
+    moves[i] = -1;
+  }
+
   return moves;
 }
 
 int* knightmoves(int row, int col, board_t* board, int myalign) {
   // A knight will have a maximum of 8 available spaces to move to
-  int* moves = malloc(sizeof(int) * 8);
+  int* moves = malloc(sizeof(int) * 27);
   size_t counter = 0;
 
   // Arrays for row and column of every possible move, rows[i] and cols[i] is one possible move
@@ -222,12 +226,16 @@ int* knightmoves(int row, int col, board_t* board, int myalign) {
     }
   }
 
+  for (int i = counter; i < 27; i++) {
+    moves[i] = -1;
+  }
+
   return moves;
 }
 
 int* bishopmoves(int row, int col, board_t* board, int myalign) {
   // A bishop will have a maximum of 13 available spaces to move to
-  int* moves = malloc(sizeof(int) * 13);
+  int* moves = malloc(sizeof(int) * 27);
   size_t counter = 0;
 
   // UP + RIGHT Movements
@@ -314,6 +322,10 @@ int* bishopmoves(int row, int col, board_t* board, int myalign) {
     }
   }
 
+  for (int i = counter; i < 27; i++) {
+    moves[i] = -1;
+  }
+
   return moves;
 }
 
@@ -325,14 +337,22 @@ int* queenmoves(int row, int col, board_t* board, int myalign) {
   int* diagonalmoves = bishopmoves(row, col, board, myalign);
 
   memcpy(moves, straightmoves, 14 * sizeof(int));
-  memcpy(moves, diagonalmoves, 13 * sizeof(int));
+  for (int i = 0; i < 14; i++) {
+    if (moves[i] == -1) {
+      memcpy(&moves[i], diagonalmoves, 13 * sizeof(int));
+      return moves;
+    }
+  }
+
+
+  memcpy(&moves[14], diagonalmoves, 13 * sizeof(int));
 
   return moves;
 }
 
 int* kingmoves(int row, int col, board_t* board, int myalign) {
   // A King will have a maximum of 8 available spaces to move to
-  int* moves = malloc(sizeof(int) * 8);
+  int* moves = malloc(sizeof(int) * 27);
   int counter = 0;
 
   int rows[] = {row - 1, row - 1, row, row + 1, row + 1, row + 1, row, row - 1};
@@ -348,12 +368,16 @@ int* kingmoves(int row, int col, board_t* board, int myalign) {
     }
   }
 
+  for (int i = counter; i < 27; i++) {
+    moves[i] = -1;
+  }
+
   return moves;
 }
 
 int* white_pawnmoves(int row, int col, board_t* board) {
   // A pawn will have a maximum of 4 available spaces to move to
-  int* moves = malloc(sizeof(int) * 4);
+  int* moves = malloc(sizeof(int) * 27);
   int counter = 0;
 
   // Check if it is in first row
@@ -394,12 +418,16 @@ int* white_pawnmoves(int row, int col, board_t* board) {
     }
   }
 
+  for (int i = counter; i < 27; i++) {
+    moves[i] = -1;
+  }
+
   return moves;
 }
 
 int* black_pawnmoves(int row, int col, board_t* board) {
   // A pawn will have a maximum of 4 available spaces to move to
-  int* moves = malloc(sizeof(int) * 4);
+  int* moves = malloc(sizeof(int) * 27);
   int counter = 0;
 
   // Check if it is in first row
@@ -440,6 +468,10 @@ int* black_pawnmoves(int row, int col, board_t* board) {
     }
   }
 
+  for (int i = counter; i < 27; i++) {
+    moves[i] = -1;
+  }
+
   return moves;
 }
 
@@ -448,7 +480,7 @@ int validate_move(board_t* board, int startpos, int endpos, int myalign) {
   int* moves = NULL;
 
   if (board->cells[startpos]->alignment != myalign) {  // If alignment does not match up
-    return -1;
+    return 1;
   }
 
   if (myalign == 1) {  // Your piece is black
@@ -496,15 +528,18 @@ int validate_move(board_t* board, int startpos, int endpos, int myalign) {
   }
 
   for (int i = 0; i < 28; i++) {  // Check if prompted endpos is within validmoves
-    if (moves[i] == 0 && moves[i+1] == 0) {          // Reached end of list, break out of loop
+    if (moves[i] == -1) {          // Reached end of list, break out of loop
       break;
     }
     if (endpos == moves[i]) {               // Move found
       move_piece(board, startpos, endpos);  // Make the move
-      return 1;                             // Return 1 for success
+      free(moves);
+      return 0;                             // Return 1 for success
     }
   }
 
+  free(moves);
+
   // If nothing returned, failed
-  return -1;
+  return 1;
 }

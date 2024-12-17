@@ -11,10 +11,10 @@
 // #include <ncurses.h>
 #include <ncursesw/curses.h>
 
+#include "ai.h"
 #include "chess.h"
 #include "printboard.h"
 #include "scheduler.h"
-#include "ai.h"
 
 WINDOW* win;
 board_t* board;
@@ -99,8 +99,12 @@ int main() {
       } while (resume_game(board, command) == 1);
       // until the saved game is successfully resumed
     } else {
-      move_command(command, board, 2);
-      check_board(board);
+      if (move_command(command, board, 2) == 0) {
+        addstr("AI is thinking really hard!");
+        refresh();
+        sleep(1);
+        check_board(board);
+      }
     }
     move(0, 0);
     printboard(board, win);
@@ -129,7 +133,7 @@ int main() {
  * make the move for user
  */
 void user_move(char* command) {
-  //move_command(command, board, alignment);
+  // move_command(command, board, alignment);
 }
 
 /*
@@ -459,8 +463,10 @@ int move_command(char* command, board_t* board, int alignment) {
     wrefresh(win);
     refresh();
   } else {  // the move is invalid
-    wrefresh(win);
+    addstr("Invalid Move!");
     refresh();
+    sleep(1);
+    return 1;
   }
   return 0;
 }
